@@ -220,8 +220,11 @@ class UserDataset(Dataset):
         char_img = self.content[char]
         char_img = char_img / 255.  # Normalize pixel values between 0.0 and 1.0
         img_list = []
+        # print(self.style_path)
         for idx in range(len(self.style_path)):
-            style_img = cv2.imread(self.style_path[idx], flags=0)
+            style_img = cv2.imdecode(np.fromfile(self.style_path[idx], dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+            # style_img = cv2.imread(self.style_path[idx], flags=0)
+            # https://github.com/dailenson/SDT/issues/43
             style_img = cv2.resize(style_img, (64, 64))
             style_img = style_img / 255.
             img_list.append(style_img)

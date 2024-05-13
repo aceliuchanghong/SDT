@@ -173,5 +173,5 @@ auto_*
 Generated/Chinese/*.pth
 Generated/Japanese/*.pth
 Generated/English/*.pth
-style_samples
+style_samples/*g*
 checkpoint_path/*.pth

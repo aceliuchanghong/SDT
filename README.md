@@ -1,4 +1,4 @@
-## style-disentangled Transformer(SDT)
+## Style-Disentangled Transformer(SDT)
 
 ### create a test env
 
@@ -7,9 +7,11 @@ pip freeze > requirements.txt
 conda create -n SDTLog python=3.8
 conda activate SDTLog
 pip install -r requirements.txt --proxy=127.0.0.1:10809
+nvidia-smi
 ```
 
-## 📂 Folder Structure
+### 📂 Folder Structure
+
 ```
 SDT/
 |
@@ -47,43 +49,68 @@ SDT/
     └── util.py
 ```
 
+### 🚀 Training & Test
 
-## 🚀 Training & Test
-**训练**
+**模型训练**
+
 - 在中文数据集上训练 SDT:
+
 ```
 python train.py --cfg configs/CHINESE_CASIA.yml --log Chinese_log
 ```
 
 - 在日语数据集上训练 SDT:
+
 ```
 python train.py --cfg configs/Japanese_TUATHANDS.yml --log Japanese_log
 ```
 
 - 在英语数据集上训练 SDT:
+
 ```
 python train.py --cfg configs/English_CASIA.yml --log English_log
 ```
 
 **定性测试**
+
 - 生成中文笔迹:
+
 ```
-python test.py --pretrained_model checkpoint_path --store_type online --sample_size 500 --dir Generated/Chinese
-python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type online --sample_size 500 --dir Generated/Chinese
+python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type img --sample_size 500 --dir Generated/Chinese
 ```
+
 - 生成日语笔迹:
+
 ```
-python test.py --pretrained_model checkpoint_path --store_type online --sample_size 500 --dir Generated/Japanese
+python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type img --sample_size 500 --dir Generated/Japanese
 ```
+
 - 生成英文笔迹:
+
 ```
-python test.py --pretrained_model checkpoint_path --store_type online --sample_size 500 --dir Generated/English
+python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type img --sample_size 500 --dir Generated/English
 ```
 
 **定量评估**
+
 - 评估生成的笔迹，需要设置为 data_path 生成的笔迹的路径:
+
 ```
 python evaluate.py --data_path Generated/Chinese
 ```
 
+**自己字体**
+
+- 把图片放到文件夹style_samples
+
+```
+python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --style_path style_samples
+```
+
+### ValueIssue
+
+* [输出字体狂草风格](https://github.com/dailenson/SDT/issues/59#issuecomment-1963197514)
+* [查看生成结果](https://github.com/dailenson/SDT/issues/74)
+* [打包字体](https://hackmd.io/@h93YMTP_SrK5XODkOdtuKg/Sk20ATBMp)
+* [打包字体2](https://github.com/dailenson/SDT/issues/63)
 
