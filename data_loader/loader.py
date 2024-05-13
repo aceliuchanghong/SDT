@@ -14,39 +14,40 @@ import cv2
 
 transform_data = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize(mean = (0.5), std = (0.5))
+    transforms.Normalize(mean=(0.5), std=(0.5))
 ])
 
-script={"CHINESE":['CASIA_CHINESE', 'Chinese_content.pkl'],
-        'JAPANESE':['TUATHANDS_JAPANESE', 'Japanese_content.pkl'],
-        "ENGLISH":['CASIA_ENGLISH', 'English_content.pkl']
-        }
+script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
+          'JAPANESE': ['TUATHANDS_JAPANESE', 'Japanese_content.pkl'],
+          "ENGLISH": ['CASIA_ENGLISH', 'English_content.pkl']
+          }
+
 
 class ScriptDataset(Dataset):
-    def __init__(self, root='data', dataset='CHINESE', is_train=True, num_img = 15):
+    def __init__(self, root='data', dataset='CHINESE', is_train=True, num_img=15):
         data_path = os.path.join(root, script[dataset][0])
         self.dataset = dataset
-        self.content = pickle.load(open(os.path.join(data_path, script[dataset][1]), 'rb')) #content samples
+        self.content = pickle.load(open(os.path.join(data_path, script[dataset][1]), 'rb'))  # content samples
         self.char_dict = pickle.load(open(os.path.join(data_path, 'character_dict.pkl'), 'rb'))
         self.all_writer = pickle.load(open(os.path.join(data_path, 'writer_dict.pkl'), 'rb'))
         self.is_train = is_train
         if self.is_train:
-            lmdb_path = os.path.join(data_path, 'train') # online characters
-            self.img_path = os.path.join(data_path, 'train_style_samples') # style samples
-            self.num_img = num_img*2
+            lmdb_path = os.path.join(data_path, 'train')  # online characters
+            self.img_path = os.path.join(data_path, 'train_style_samples')  # style samples
+            self.num_img = num_img * 2
             self.writer_dict = self.all_writer['train_writer']
         else:
-            lmdb_path = os.path.join(data_path, 'test') # online characters
-            self.img_path = os.path.join(data_path, 'test_style_samples') # style samples
+            lmdb_path = os.path.join(data_path, 'test')  # online characters
+            self.img_path = os.path.join(data_path, 'test_style_samples')  # style samples
             self.num_img = num_img
             self.writer_dict = self.all_writer['test_writer']
         if not os.path.exists(lmdb_path):
-            raise IOError("input the correct lmdb path")
-        
+            raise IOError("input the correct lmdb path:", lmdb_path)
+
         self.lmdb = lmdb.open(lmdb_path, max_readers=8, readonly=True, lock=False, readahead=False, meminit=False)
-        if script[dataset][0] == "CASIA_CHINESE" :
+        if script[dataset][0] == "CASIA_CHINESE":
             self.max_len = -1  # Do not filter characters with many trajectory points
-        else: # Japanese, Indic, English
+        else:  # Japanese, Indic, English
             self.max_len = 150
 
         self.all_path = {}
@@ -75,8 +76,8 @@ class ScriptDataset(Dataset):
         with self.lmdb.begin(write=False) as txn:
             data = pickle.loads(txn.get(str(index).encode('utf-8')))
             tag_char, coords, fname = data['tag_char'], data['coordinates'], data['fname']
-        char_img = self.content[tag_char] # content samples
-        char_img = char_img/255. # Normalize pixel values between 0.0 and 1.0
+        char_img = self.content[tag_char]  # content samples
+        char_img = char_img / 255.  # Normalize pixel values between 0.0 and 1.0
         writer = data['fname'].split('.')[0]
         img_path_list = self.all_path[writer]
         with open(img_path_list, 'rb') as f:
@@ -86,15 +87,15 @@ class ScriptDataset(Dataset):
         random_indexs = random.sample(range(len(style_samples)), self.num_img)
         for idx in random_indexs:
             tmp_img = style_samples[idx]['img']
-            tmp_img = tmp_img/255.
+            tmp_img = tmp_img / 255.
             tmp_label = style_samples[idx]['label']
             img_list.append(tmp_img)
             if self.dataset == 'JAPANESE':
                 tmp_label = bytes.fromhex(tmp_label[5:])
                 tmp_label = codecs.decode(tmp_label, "cp932")
             img_label.append(tmp_label)
-        img_list = np.expand_dims(np.array(img_list), 1) # [N, C, H, W], C=1
-        coords = normalize_xys(coords) # Coordinate Normalization
+        img_list = np.expand_dims(np.array(img_list), 1)  # [N, C, H, W], C=1
+        coords = normalize_xys(coords)  # Coordinate Normalization
 
         #### Convert absolute coordinate values into relative ones
         coords[1:, :2] = coords[1:, :2] - coords[:-1, :2]
@@ -117,35 +118,38 @@ class ScriptDataset(Dataset):
     def collate_fn_(self, batch_data):
         bs = len(batch_data)
         max_len = max([s['coords'].shape[0] for s in batch_data]) + 1
-        output = {'coords': torch.zeros((bs, max_len, 5)), # (x, y, state_1, state_2, state_3)
-                  'coords_len': torch.zeros((bs, )),
+        output = {'coords': torch.zeros((bs, max_len, 5)),  # (x, y, state_1, state_2, state_3)
+                  'coords_len': torch.zeros((bs,)),
                   'character_id': torch.zeros((bs,)),
                   'writer_id': torch.zeros((bs,)),
                   'img_list': [],
                   'char_img': [],
                   'img_label': []}
-        output['coords'][:,:,-1] = 1 # pad to a fixed length with pen-end state
-        
+        output['coords'][:, :, -1] = 1  # pad to a fixed length with pen-end state
+
         for i in range(bs):
             s = batch_data[i]['coords'].shape[0]
             output['coords'][i, :s] = batch_data[i]['coords']
-            output['coords'][i, 0, :2] = 0 ### put pen-down state in the first token
+            output['coords'][i, 0, :2] = 0  ### put pen-down state in the first token
             output['coords_len'][i] = s
             output['character_id'][i] = batch_data[i]['character_id']
             output['writer_id'][i] = batch_data[i]['writer_id']
             output['img_list'].append(batch_data[i]['img_list'])
             output['char_img'].append(batch_data[i]['char_img'])
             output['img_label'].append(batch_data[i]['img_label'])
-        output['img_list'] = torch.stack(output['img_list'], 0) # -> (B, num_img, 1, H, W)
+        output['img_list'] = torch.stack(output['img_list'], 0)  # -> (B, num_img, 1, H, W)
         temp = torch.stack(output['char_img'], 0)
         output['char_img'] = temp.unsqueeze(1)
         output['img_label'] = torch.cat(output['img_label'], 0)
         output['img_label'] = output['img_label'].view(-1, 1).squeeze()
         return output
 
+
 """
  loading generated online characters for evaluating the generation quality
 """
+
+
 class Online_Dataset(Dataset):
     def __init__(self, data_path):
         lmdb_path = os.path.join(data_path, 'test')
@@ -170,7 +174,7 @@ class Online_Dataset(Dataset):
             coords, coords_gt = corrds2xys(coords), corrds2xys(coords_gt)
         except:
             print('Error in character format conversion')
-            return self[index+1]
+            return self[index + 1]
         return {'coords': torch.Tensor(coords),
                 'character_id': torch.Tensor([character_id]),
                 'writer_id': torch.Tensor([writer_id]),
@@ -184,45 +188,45 @@ class Online_Dataset(Dataset):
         max_len = max([s['coords'].shape[0] for s in batch_data])
         max_len_gt = max([h['coords_gt'].shape[0] for h in batch_data])
         output = {'coords': torch.zeros((bs, max_len, 5)),  # preds -> (x,y,state) 
-                  'coords_gt':torch.zeros((bs, max_len_gt, 5)), # gt -> (x,y,state) 
-                  'coords_len': torch.zeros((bs, )),
-                  'len_gt': torch.zeros((bs, )),
+                  'coords_gt': torch.zeros((bs, max_len_gt, 5)),  # gt -> (x,y,state)
+                  'coords_len': torch.zeros((bs,)),
+                  'len_gt': torch.zeros((bs,)),
                   'character_id': torch.zeros((bs,)),
                   'writer_id': torch.zeros((bs,))}
 
         for i in range(bs):
             s = batch_data[i]['coords'].shape[0]
             output['coords'][i, :s] = batch_data[i]['coords']
-            h =  batch_data[i]['coords_gt'].shape[0]
+            h = batch_data[i]['coords_gt'].shape[0]
             output['coords_gt'][i, :h] = batch_data[i]['coords_gt']
             output['coords_len'][i], output['len_gt'][i] = s, h
             output['character_id'][i] = batch_data[i]['character_id']
             output['writer_id'][i] = batch_data[i]['writer_id']
         return output
-    
+
 
 class UserDataset(Dataset):
     def __init__(self, root='data', dataset='CHINESE', style_path='style_samples'):
         data_path = os.path.join(root, script[dataset][0])
-        self.content = pickle.load(open(os.path.join(data_path, script[dataset][1]), 'rb')) #content samples
+        self.content = pickle.load(open(os.path.join(data_path, script[dataset][1]), 'rb'))  # content samples
         self.char_dict = pickle.load(open(os.path.join(data_path, 'character_dict.pkl'), 'rb'))
-        self.style_path = glob.glob(style_path+'/*.[jp][pn]g')
+        self.style_path = glob.glob(style_path + '/*.[jp][pn]g')
 
     def __len__(self):
         return len(self.char_dict)
-    
+
     def __getitem__(self, index):
-        char = self.char_dict[index] # content samples
-        char_img = self.content[char] 
-        char_img = char_img/255. # Normalize pixel values between 0.0 and 1.0
+        char = self.char_dict[index]  # content samples
+        char_img = self.content[char]
+        char_img = char_img / 255.  # Normalize pixel values between 0.0 and 1.0
         img_list = []
         for idx in range(len(self.style_path)):
             style_img = cv2.imread(self.style_path[idx], flags=0)
             style_img = cv2.resize(style_img, (64, 64))
-            style_img = style_img/255.
+            style_img = style_img / 255.
             img_list.append(style_img)
         img_list = np.expand_dims(np.array(img_list), 1)
-        
+
         return {'char_img': torch.Tensor(char_img).unsqueeze(0),
                 'img_list': torch.Tensor(img_list),
                 'char': char}

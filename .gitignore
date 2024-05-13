@@ -160,6 +160,10 @@ cython_debug/
 #.idea/
 /flagged/
 
+data/CASIA_CHINESE/test/*
+data/CASIA_CHINESE/test_style_samples/*
+data/CASIA_CHINESE/train/*
+data/CASIA_CHINESE/train_style_samples/*
 data/CASIA_CHINESE/*.pkl
 saved/models/*.pth
 saved/samples/*.pth
@@ -170,4 +174,4 @@ Generated/Chinese/*.pth
 Generated/Japanese/*.pth
 Generated/English/*.pth
 style_samples
-
+checkpoint_path/*.pth

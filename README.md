@@ -97,6 +97,7 @@ python train.py --cfg configs/English_CASIA.yml --log English_log
 - To generate Chinese handwritings with our SDT, run this command:
 ```
 python test.py --pretrained_model checkpoint_path --store_type online --sample_size 500 --dir Generated/Chinese
+python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type online --sample_size 500 --dir Generated/Chinese
 ```
 
 - To generate Japanese handwritings with our SDT, run this command:

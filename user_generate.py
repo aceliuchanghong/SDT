@@ -75,7 +75,8 @@ if __name__ == '__main__':
                         help='Config file for training (and optionally testing)')
     parser.add_argument('--dir', dest='save_dir', default='Generated/Chinese_User',
                         help='target dir for storing the generated characters')
-    parser.add_argument('--pretrained_model', dest='pretrained_model', default='', required=True,
+    parser.add_argument('--pretrained_model', dest='pretrained_model',
+                        default='checkpoint_path/checkpoint-iter199999.pth', required=True,
                         help='continue train model')
     parser.add_argument('--style_path', dest='style_path', default='style_samples', help='dir of style samples')
     opt = parser.parse_args()

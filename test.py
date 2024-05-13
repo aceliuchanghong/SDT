@@ -25,12 +25,15 @@ def main(opt):
                                               sampler=None,
                                               drop_last=False,
                                               collate_fn=test_dataset.collate_fn_,
-                                              num_workers=cfg.DATA_LOADER.NUM_THREADS)
+                                              # num_workers=cfg.DATA_LOADER.NUM_THREADS,
+                                              num_workers=0
+                                              )
+
     char_dict = test_dataset.char_dict
     writer_dict = test_dataset.writer_dict
 
     os.makedirs(os.path.join(opt.save_dir, 'test'), exist_ok=True)
-    test_env = lmdb.open(os.path.join(opt.save_dir, 'test'), map_size=1099511627776)
+    test_env = lmdb.open(os.path.join(opt.save_dir, 'test'), map_size=1073741824)
     pickle.dump(writer_dict, open(os.path.join(opt.save_dir, 'writer_dict.pkl'), 'wb'))
     pickle.dump(char_dict, open(os.path.join(opt.save_dir, 'character_dict.pkl'), 'wb'))
 
@@ -108,13 +111,16 @@ def main(opt):
 if __name__ == '__main__':
     """Parse input arguments"""
     parser = argparse.ArgumentParser()
+    # 有了dest 在命令行中运行程序并传递 --cfg some_config.yml，那么 args.cfg_file 将等于 'some_config.yml'。
     parser.add_argument('--cfg', dest='cfg_file', default='configs/CHINESE_CASIA.yml',
                         help='Config file for training (and optionally testing)')
     parser.add_argument('--dir', dest='save_dir', default='Generated/Chinese',
                         help='target dir for storing the generated characters')
-    parser.add_argument('--pretrained_model', dest='pretrained_model', default='', required=True,
+    parser.add_argument('--pretrained_model', dest='pretrained_model',
+                        default='checkpoint_path/checkpoint-iter199999.pth', required=True,
                         help='continue train model')
-    parser.add_argument('--store_type', dest='store_type', required=True, default='online', help='online or img')
+    parser.add_argument('--store_type', dest='store_type', required=True, default='online',
+                        help='online or img')
     parser.add_argument('--sample_size', dest='sample_size', default='500', required=True,
                         help='randomly generate a certain number of characters for each writer')
     opt = parser.parse_args()

@@ -99,6 +99,7 @@ __C.DATA_LOADER = AttrDict()
 # Number of Python threads to use for the data loader (warning: using too many
 # threads can cause GIL-based interference with Python Ops leading to *slower*
 # training; 4 seems to be the sweet spot in our experience)
+# windows改成0,linux为8
 __C.DATA_LOADER.NUM_THREADS = 8
 
 __C.DATA_LOADER.CONCAT_GRID = False
