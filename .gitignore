@@ -175,3 +175,7 @@ Generated/Japanese/*.pth
 Generated/English/*.pth
 style_samples/*g*
 checkpoint_path/*.pth
+font/*g*
+font/result/*
+font/result2/*
+font/result3/*

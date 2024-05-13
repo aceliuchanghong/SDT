@@ -13,40 +13,44 @@ nvidia-smi
 ### 📂 Folder Structure
 
 ```
-SDT/
-|
-├── README.md
-├── evaluate.py
-├── parse_config.py
-├── requirements.txt
-├── test.py
-├── train.py
-├── user_generate.py
-├── checkpoint_path/
-├── configs/
-│   ├── CHINESE_CASIA.yml
-│   ├── CHINESE_USER.yml
-│   ├── English_CASIA.yml
-│   └── Japanese_TUATHANDS.yml
-├── data_loader/
-│   └── loader.py
-├── model_zoo/
-├── models/
-│   ├── encoder.py
-│   ├── gmm.py
-│   ├── loss.py
-│   ├── model.py
-│   └── transformer.py
-├── saved/
-│   ├── models/
-│   ├── samples/
-│   └── tborad/
-├── trainer/
-│   └── trainer.py
-└── utils/
-    ├── logger.py
-    ├── structure.py
-    └── util.py
+    SDT/
+    |
+    ├── README.md
+    ├── evaluate.py
+    ├── parse_config.py
+    ├── requirements.txt
+    ├── test.py
+    ├── train.py
+    ├── user_generate.py
+    ├── checkpoint_path/
+    ├── configs/
+    │   ├── CHINESE_CASIA.yml
+    │   ├── CHINESE_USER.yml
+    │   ├── English_CASIA.yml
+    │   └── Japanese_TUATHANDS.yml
+    ├── data_loader/
+    │   └── loader.py
+    ├── model_zoo/
+    ├── models/
+    │   ├── encoder.py
+    │   ├── gmm.py
+    │   ├── loss.py
+    │   ├── model.py
+    │   └── transformer.py
+    ├── saved/
+    │   ├── models/
+    │   ├── samples/
+    │   └── tborad/
+    ├── style_samples/
+    ├── trainer/
+    │   └── trainer.py
+    └── utils/
+        ├── cut_pics.py
+        ├── logger.py
+        ├── pic_bin.py
+        ├── remove_comments.py
+        ├── structure.py
+        └── util.py
 ```
 
 ### 🚀 Training & Test
@@ -110,6 +114,7 @@ python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999
 ### ValueIssue
 
 * [输出字体狂草风格](https://github.com/dailenson/SDT/issues/59#issuecomment-1963197514)
+* [不狂草](https://github.com/dailenson/SDT/issues/75#issuecomment-2031897517)
 * [查看生成结果](https://github.com/dailenson/SDT/issues/74)
 * [打包字体](https://hackmd.io/@h93YMTP_SrK5XODkOdtuKg/Sk20ATBMp)
 * [打包字体2](https://github.com/dailenson/SDT/issues/63)
