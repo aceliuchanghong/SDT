@@ -1,9 +1,9 @@
-'''
+"""
 Copy-paste from torch.nn.Transformer with modifications:
     * positional encodings are passed in MHattention
     * extra LN at the end of encoder is removed
     * decoder returns a stack of activations from all decoding layers
-'''
+"""
 
 import copy
 from typing import Optional, List
@@ -47,13 +47,13 @@ class Transformer(nn.Module):
         bs, c, h, w = src.shape
         src = src.flatten(2).permute(2, 0, 1)
 
-        y_emb = query_embed[y_ind].permute(1,0,2)
+        y_emb = query_embed[y_ind].permute(1, 0, 2)
 
         tgt = torch.zeros_like(y_emb)
         memory = self.encoder(src)
         hs = self.decoder(tgt, memory, query_pos=y_emb)
-                        
-        return torch.cat([hs.transpose(1, 2)[-1], y_emb.permute(1,0,2)], -1)
+
+        return torch.cat([hs.transpose(1, 2)[-1], y_emb.permute(1, 0, 2)], -1)
 
 
 class TransformerEncoder(nn.Module):
@@ -293,6 +293,7 @@ def _get_activation_fn(activation):
         return F.glu
     raise RuntimeError(F"activation should be relu/gelu, not {activation}.")
 
+
 class PositionalEncoding(nn.Module):
     """Sinusoidal positional encoding for non-recurrent neural networks.
 
@@ -311,7 +312,7 @@ class PositionalEncoding(nn.Module):
         pe = torch.zeros(max_len, dim)
         position = torch.arange(0, max_len).unsqueeze(1)
         div_term = torch.exp((torch.arange(0, dim, 2, dtype=torch.float) *
-                             -(math.log(10000.0) / dim)))
+                              -(math.log(10000.0) / dim)))
         pe[:, 0::2] = torch.sin(position.float() * div_term)
         pe[:, 1::2] = torch.cos(position.float() * div_term)
         pe = pe.unsqueeze(1)

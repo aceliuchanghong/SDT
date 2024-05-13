@@ -3,9 +3,11 @@ import torch.nn.functional as F
 import torch.nn as nn
 import numpy as np
 
+
 class SupConLoss(nn.Module):
     """Supervised Contrastive Learning: https://arxiv.org/pdf/2004.11362.pdf.
     It also supports the unsupervised contrastive loss in SimCLR"""
+
     def __init__(self, temperature=0.07, contrast_mode='all',
                  base_temperature=0.07):
         super(SupConLoss, self).__init__()
@@ -93,6 +95,8 @@ class SupConLoss(nn.Module):
 
 
 """pen moving prediction and pen state classification losses"""
+
+
 def get_pen_loss(z_pi, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr, z_pen_logits, x1_data, x2_data,
                  pen_data):
     result0 = tf_2d_normal(x1_data, x2_data, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr)
@@ -108,9 +112,12 @@ def get_pen_loss(z_pi, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr, z_pen_logits, x
     result1 = torch.multiply(result1, fs)
     loss_fn = torch.nn.CrossEntropyLoss()
     result2 = loss_fn(z_pen_logits, torch.argmax(pen_data, -1))
-    return result1, result2 # result1: pen offset loss, result2: category loss
+    return result1, result2  # result1: pen offset loss, result2: category loss
+
 
 """Normal distribution"""
+
+
 def tf_2d_normal(x1, x2, mu1, mu2, s1, s2, rho):
     s1 = torch.clip(s1, 1e-6, 500.0)
     s2 = torch.clip(s2, 1e-6, 500.0)
