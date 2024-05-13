@@ -8,6 +8,8 @@ from models.model import SDT_Generator
 import tqdm
 from utils.util import writeCache, dxdynp_to_list, coords_render
 import lmdb
+from torch.utils.data import DataLoader
+
 
 def main(opt):
     """ load config file into cfg"""
@@ -16,7 +18,7 @@ def main(opt):
 
     """setup data_loader instances"""
     test_dataset = ScriptDataset(
-       cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS)
+        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS)
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=cfg.TRAIN.IMS_PER_BATCH,
                                               shuffle=True,
@@ -34,9 +36,9 @@ def main(opt):
 
     """build model architecture"""
     model = SDT_Generator(num_encoder_layers=cfg.MODEL.ENCODER_LAYERS,
-            num_head_layers= cfg.MODEL.NUM_HEAD_LAYERS,
-            wri_dec_layers=cfg.MODEL.WRI_DEC_LAYERS,
-            gly_dec_layers= cfg.MODEL.GLY_DEC_LAYERS).to('cuda')
+                          num_head_layers=cfg.MODEL.NUM_HEAD_LAYERS,
+                          wri_dec_layers=cfg.MODEL.WRI_DEC_LAYERS,
+                          gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS).to('cuda')
     if len(opt.pretrained_model) > 0:
         model_weight = torch.load(opt.pretrained_model)
         model.load_state_dict(model_weight)
@@ -49,9 +51,9 @@ def main(opt):
     if opt.sample_size == 'all':
         batch_samples = len(test_loader)
     else:
-        batch_samples = int(opt.sample_size)*len(writer_dict)//cfg.TRAIN.IMS_PER_BATCH
+        batch_samples = int(opt.sample_size) * len(writer_dict) // cfg.TRAIN.IMS_PER_BATCH
 
-    batch_num, num_count= 0, 0
+    batch_num, num_count = 0, 0
     data_iter = iter(test_loader)
     with torch.no_grad():
         for _ in tqdm.tqdm(range(batch_samples)):
@@ -80,7 +82,7 @@ def main(opt):
                         pred, _ = dxdynp_to_list(preds[i])
                         coord, _ = dxdynp_to_list(coords[i])
                         data = {'coordinates': pred, 'writer_id': writer_id[i].item(),
-                                'character_id': character_id[i].item(), 'coords_gt':coord}
+                                'character_id': character_id[i].item(), 'coords_gt': coord}
                         data_byte = pickle.dumps(data)
                         data_id = str(num_count).encode('utf-8')
                         test_cache[data_id] = data_byte
@@ -94,7 +96,7 @@ def main(opt):
                         sk_pil = coords_render(preds[i], split=True, width=256, height=256, thickness=8, board=0)
                         character = char_dict[character_id[i].item()]
                         save_path = os.path.join(opt.save_dir, 'test',
-                                        str(writer_id[i].item()) + '_' + character+'.png')
+                                                 str(writer_id[i].item()) + '_' + character + '.png')
                         try:
                             sk_pil.save(save_path)
                         except:
@@ -102,14 +104,18 @@ def main(opt):
                 else:
                     raise NotImplementedError('only support online or img format')
 
+
 if __name__ == '__main__':
     """Parse input arguments"""
     parser = argparse.ArgumentParser()
     parser.add_argument('--cfg', dest='cfg_file', default='configs/CHINESE_CASIA.yml',
                         help='Config file for training (and optionally testing)')
-    parser.add_argument('--dir', dest='save_dir', default='Generated/Chinese', help='target dir for storing the generated characters')
-    parser.add_argument('--pretrained_model', dest='pretrained_model', default='', required=True, help='continue train model')
+    parser.add_argument('--dir', dest='save_dir', default='Generated/Chinese',
+                        help='target dir for storing the generated characters')
+    parser.add_argument('--pretrained_model', dest='pretrained_model', default='', required=True,
+                        help='continue train model')
     parser.add_argument('--store_type', dest='store_type', required=True, default='online', help='online or img')
-    parser.add_argument('--sample_size', dest='sample_size', default='500', required=True, help='randomly generate a certain number of characters for each writer')
+    parser.add_argument('--sample_size', dest='sample_size', default='500', required=True,
+                        help='randomly generate a certain number of characters for each writer')
     opt = parser.parse_args()
     main(opt)

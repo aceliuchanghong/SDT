@@ -1,18 +1,3 @@
-![MIT LICENSE](https://shields.io/badge/license-MIT-green)
-![python 3.8](https://img.shields.io/badge/python-3.8-brightgreen)
-# 🔥 Disentangling Writer and Character Styles for Handwriting Generation
-
- <p align='center'>
-  <b>
-    <a href="https://arxiv.org/abs/2303.14736">ArXiv</a>
-    |
-    <a href="https://github.com/dailenson/SDT/blob/master/static/Poster_SDT.pdf">Poster</a>
-    | 
-    <a href="https://youtu.be/mKbYLEwa4dI">Video</a>
-    | 
-    <a href="https://cvpr2023.thecvf.com/virtual/2023/poster/20954">Project</a>
-  </b>
-</p> 
 
 ## 📢 Introduction
 - The proposed style-disentangled Transformer (SDT) generates online handwritings with conditional content and style. Existing RNN-based methods mainly focus on capturing a person’s overall writing style, neglecting subtle style inconsistencies between characters written by the same person. In light of this, SDT disentangles the writer-wise and character-wise style representations from individual handwriting samples for enhancing imitation performance.
@@ -44,14 +29,7 @@ Three samples of online characters with writing orders
 - **Extension on offline Chinese handwriting generation**
 ![offline Chinese](static/offline_Chinese.jpg)
 
-
-## 🔨 Requirements
-```
-python 3.8
-pytorch >=1.8
-easydict 1.9
-einops 0.4.1
-```
+  
 ## 📂 Folder Structure
   ```
   SDT/
@@ -137,32 +115,11 @@ python test.py --pretrained_model checkpoint_path --store_type online --sample_s
 python evaluate.py --data_path Generated/Chinese
 ```
 
-## 🏰 Practical Application
-We are delighted to discover that **[P0etry-rain](https://github.com/P0etry-rain)** has proposed a pipeline that involves initially converting the generated results by our SDT to TTF format, followed by the development of software to enable flexible adjustments in spacing between paragraphs, lines, and characters. Below, we present TTF files, software interface and the printed results. More details can be seen in [#78](https://github.com/dailenson/SDT/issues/78#issue-2247810028).
-- **TTF File**
-![SVG](static/svg.png)
+### create a test env
 
-- **Software Interface**
-![Interface](static/software.png)
-
-- **Printed Results**
-![Result](static/print.png)
-
-
-
-## ❤️ Citation
-If you find our work inspiring or use our codebase in your research, please cite our work:
+```shell
+pip freeze > requirements.txt
+conda create -n SDTLog python=3.8
+conda activate SDTLog
+pip install -r requirements.txt --proxy=127.0.0.1:10809
 ```
-@inproceedings{dai2023disentangling,
-  title={Disentangling Writer and Character Styles for Handwriting Generation},
-  author={Dai, Gang and Zhang, Yifan and Wang, Qingfeng and Du, Qing and Yu, Zhuliang and Liu, Zhuoman and Huang, Shuangping},
-  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition,
-  pages={5977--5986},
-  year={2023}
-}
-```
-
-## ⭐ StarGraph
-[![Star History Chart](https://api.star-history.com/svg?repos=dailenson/SDT&type=Timeline)](https://star-history.com/#dailenson/SDT&Timeline)
-
-

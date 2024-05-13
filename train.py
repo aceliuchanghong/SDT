@@ -7,6 +7,8 @@ from utils.logger import set_log
 from data_loader.loader import ScriptDataset
 import torch
 from trainer.trainer import Trainer
+from torch.utils.data import DataLoader
+
 
 def main(opt):
     """ load config file into cfg"""
@@ -27,7 +29,7 @@ def main(opt):
                                                collate_fn=train_dataset.collate_fn_,
                                                num_workers=cfg.DATA_LOADER.NUM_THREADS)
     test_dataset = ScriptDataset(
-       cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS)
+        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS)
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=cfg.TRAIN.IMS_PER_BATCH,
                                               shuffle=True,
@@ -38,9 +40,9 @@ def main(opt):
     char_dict = test_dataset.char_dict
     """ build model, criterion and optimizer"""
     model = SDT_Generator(num_encoder_layers=cfg.MODEL.ENCODER_LAYERS,
-            num_head_layers= cfg.MODEL.NUM_HEAD_LAYERS,
-            wri_dec_layers=cfg.MODEL.WRI_DEC_LAYERS,
-            gly_dec_layers= cfg.MODEL.GLY_DEC_LAYERS).to('cuda')
+                          num_head_layers=cfg.MODEL.NUM_HEAD_LAYERS,
+                          wri_dec_layers=cfg.MODEL.WRI_DEC_LAYERS,
+                          gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS).to('cuda')
     ### load checkpoint
     if len(opt.pretrained_model) > 0:
         model.load_state_dict(torch.load(opt.pretrained_model))
@@ -56,6 +58,7 @@ def main(opt):
     """start training iterations"""
     trainer = Trainer(model, criterion, optimizer, train_loader, logs, char_dict, test_loader)
     trainer.train()
+
 
 if __name__ == '__main__':
     """Parse input arguments"""
