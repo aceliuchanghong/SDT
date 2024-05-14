@@ -113,6 +113,7 @@ python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999
 
 ### ValueIssue
 
+* [商用AI字体](https://www.ai.zitijia.com/)
 * [输出字体狂草风格](https://github.com/dailenson/SDT/issues/59#issuecomment-1963197514)
 * [不狂草](https://github.com/dailenson/SDT/issues/75#issuecomment-2031897517)
 * [查看生成结果](https://github.com/dailenson/SDT/issues/74)

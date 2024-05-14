@@ -17,6 +17,7 @@ from torch.nn import init
 import yaml
 from easydict import EasyDict
 
+
 class AttrDict(EasyDict):
     IMMUTABLE = '__immutable__'
 
@@ -39,11 +40,11 @@ class AttrDict(EasyDict):
     def is_immutable(self):
         return self.__dict__[AttrDict.IMMUTABLE]
 
+
 __C = AttrDict()
 # Consumers can get config by:
 # from parse_config import cfg
 cfg = __C
-
 
 # Random note: avoid using '.ON' as a config key since yaml converts it to True;
 # prefer 'ENABLED' instead
@@ -90,7 +91,6 @@ __C.TRAIN.DROPOUT_P = 0.
 # Set the random seed
 __C.TRAIN.SEED = 1001
 
-
 # ---------------------------------------------------------------------------- #
 # Data loader options
 # ---------------------------------------------------------------------------- #
@@ -109,7 +109,6 @@ __C.DATA_LOADER.PATH = 'data'
 __C.DATA_LOADER.TYPE = 'ScriptDataset'
 
 __C.DATA_LOADER.DATASET = 'CHINESE'
-
 
 # ---------------------------------------------------------------------------- #
 # Inference ('test') options
@@ -184,6 +183,7 @@ __C.ROOT_DIR = osp.abspath(osp.join(osp.dirname(__file__)))
 # Output basedir
 __C.OUTPUT_DIR = 'Saved'
 
+
 def assert_and_infer_cfg(make_immutable=True):
     """Call this function in your script after you have finished setting all cfg
     values that are necessary (e.g., merging a config from a file, merging
@@ -200,11 +200,13 @@ def assert_and_infer_cfg(make_immutable=True):
         init.constant_ = init.constant
         init.kaiming_normal_ = init.kaiming_normal
         torch.nn.utils.clip_grad_norm_ = torch.nn.utils.clip_grad_norm
+
         def _rebuild_tensor_v2(storage, storage_offset, size, stride, requires_grad, backward_hooks):
             tensor = torch._utils._rebuild_tensor(storage, storage_offset, size, stride)
             tensor.requires_grad = requires_grad
             tensor._backward_hooks = backward_hooks
             return tensor
+
         torch._utils._rebuild_tensor_v2 = _rebuild_tensor_v2
     if make_immutable:
         cfg.immutable(True)
@@ -212,9 +214,10 @@ def assert_and_infer_cfg(make_immutable=True):
 
 def merge_cfg_from_file(cfg_filename):
     """Load a yaml config file and merge it into the global config."""
-    with open(cfg_filename, 'r') as f: 
+    with open(cfg_filename, 'r') as f:
         yaml_cfg = AttrDict(yaml.full_load(f))
     _merge_a_into_b(yaml_cfg, __C)
+
 
 cfg_from_file = merge_cfg_from_file
 
@@ -246,6 +249,7 @@ def merge_cfg_from_list(cfg_list):
             value, d[subkey], subkey, full_key
         )
         d[subkey] = value
+
 
 cfg_from_list = merge_cfg_from_list
 
