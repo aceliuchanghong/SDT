@@ -6,11 +6,11 @@ import shutil
 
 def main(opt):
     # 膨胀腐蚀大小 即将笔画膨胀 避免将偏旁单独分割 根据图片请况自行设置
-    rect_size = 16
+    rect_size = 10
     # 字体小于该值忽略 20*20
-    ignore_min_size = 20
+    ignore_min_size = 80
     # 字体大于该值忽略 100*100
-    ignore_max_size = 100
+    ignore_max_size = 150
 
     # 需要切分的图片 input/input.jpg
     input_file = opt.input_path
@@ -82,7 +82,7 @@ def main(opt):
 if __name__ == '__main__':
     """Parse input arguments"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', dest='input_path', default='from/from.jpg',
+    parser.add_argument('--input', dest='input_path', default='from/from2.jpg',
                         help='Please set the input path')
     parser.add_argument('--output', dest='output_path', default='font',
                         help='Please set the output path')
