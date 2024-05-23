@@ -3,8 +3,10 @@ import os
 
 # 设置二值化阈值
 threshold = 128
-current_dir = 'font/result2/'
-save_dir = 'font/result3/'
+current_dir = 'font/result/'
+save_dir = '../style_samples/'
+if not os.path.exists(save_dir):
+    os.makedirs(save_dir)
 
 if __name__ == '__main__':
     for filename in os.listdir(current_dir):
