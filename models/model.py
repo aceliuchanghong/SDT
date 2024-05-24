@@ -14,6 +14,29 @@ the input of our SDT is the gray image with 1 channel.
 
 
 class SDT_Generator(nn.Module):
+    """
+    d_model: 模型的输入和输出的维度。在Transformer模型中，这通常是词嵌入的维度。
+
+    nhead: 多头注意力机制中的头数。在Transformer模型中，多头注意力允许模型在不同的表示子空间中并行处理信息。
+
+    num_encoder_layers: 编码器层的数量，即Transformer模型中的Transformer层数。
+
+    num_head_layers: 在编码器和解码器中使用的多头注意力层的数量。
+
+    wri_dec_layers: 书写解码器的层数。
+
+    gly_dec_layers: 笔画解码器的层数。
+
+    dim_feedforward: 前馈神经网络中隐藏层的大小。
+
+    dropout: 在模型中使用的dropout概率，用于正则化和防止过拟合。
+
+    activation: 前馈神经网络中使用的激活函数的类型。
+
+    normalize_before: 一个布尔值，指示在应用多头注意力和前馈神经网络之前是否对输入进行层归一化。
+
+    return_intermediate_dec: 一个布尔值，指示是否在解码过程中返回中间结果。
+    """
     def __init__(self, d_model=512, nhead=8, num_encoder_layers=2, num_head_layers=1,
                  wri_dec_layers=2, gly_dec_layers=2, dim_feedforward=2048, dropout=0.1,
                  activation="relu", normalize_before=True, return_intermediate_dec=True):
@@ -50,8 +73,8 @@ class SDT_Generator(nn.Module):
         self.pro_mlp_character = nn.Sequential(
             nn.Linear(512, 4096), nn.GELU(), nn.Linear(4096, 256))
 
-        self.SeqtoEmb = SeqtoEmb(hid_dim=d_model)
-        self.EmbtoSeq = EmbtoSeq(hid_dim=d_model)
+        self.SeqtoEmb = SeqtoEmb(input_dim=d_model)
+        self.EmbtoSeq = EmbtoSeq(input_dim=d_model)
         self.add_position = PositionalEncoding(dropout=0.1, dim=d_model)
         self._reset_parameters()
 
@@ -201,10 +224,10 @@ project the handwriting sequences to the transformer hidden space
 
 
 class SeqtoEmb(nn.Module):
-    def __init__(self, hid_dim, dropout=0.1):
+    def __init__(self, input_dim, dropout=0.1):
         super().__init__()
         self.fc_1 = nn.Linear(5, 256)
-        self.fc_2 = nn.Linear(256, hid_dim)
+        self.fc_2 = nn.Linear(256, input_dim)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, seq):
@@ -219,9 +242,9 @@ project the transformer hidden space to handwriting sequences
 
 
 class EmbtoSeq(nn.Module):
-    def __init__(self, hid_dim, dropout=0.1):
+    def __init__(self, input_dim, dropout=0.1):
         super().__init__()
-        self.fc_1 = nn.Linear(hid_dim, 256)
+        self.fc_1 = nn.Linear(input_dim, 256)
         self.fc_2 = nn.Linear(256, 123)
         self.dropout = nn.Dropout(dropout)
 
