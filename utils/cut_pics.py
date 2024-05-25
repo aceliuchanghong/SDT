@@ -6,11 +6,13 @@ import shutil
 
 def main(opt):
     # 膨胀腐蚀大小 即将笔画膨胀 避免将偏旁单独分割 根据图片请况自行设置
-    rect_size = 10
+    rect_size = 8
     # 字体小于该值忽略 20*20
     ignore_min_size = 80
     # 字体大于该值忽略 100*100
     ignore_max_size = 150
+    # 图片选取偏移
+    offset_param = 48
 
     # 需要切分的图片 input/input.jpg
     input_file = opt.input_path
@@ -60,10 +62,10 @@ def main(opt):
         x_offset = int((frame_size - font_w) / 2)
         y_offset = int((frame_size - font_h) / 2)
 
-        start_x = x + spacing - x_offset
-        start_y = y + spacing - y_offset
-        end_x = x + w - spacing + x_offset
-        end_y = y + h - spacing + y_offset
+        start_x = x + spacing - x_offset - offset_param
+        start_y = y + spacing - y_offset - offset_param
+        end_x = x + w - spacing + x_offset + offset_param
+        end_y = y + h - spacing + y_offset + offset_param
 
         # 字体框线
         cv2.rectangle(thresh_rgb, (x + spacing, y + spacing), (x + w - spacing, y + h - spacing), font_frame_color, 1)
@@ -82,7 +84,7 @@ def main(opt):
 if __name__ == '__main__':
     """Parse input arguments"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', dest='input_path', default='from/from2.jpg',
+    parser.add_argument('--input', dest='input_path', default='from/from3.jpg',
                         help='Please set the input path')
     parser.add_argument('--output', dest='output_path', default='font',
                         help='Please set the output path')
