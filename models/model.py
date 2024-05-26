@@ -12,70 +12,104 @@ the overall architecture of our style-disentangled Transformer (SDT).
 the input of our SDT is the gray image with 1 channel.
 '''
 
+"""
+d_model: 模型的输入和输出的维度。在Transformer模型中，这通常是词嵌入的维度。
+
+nhead: 多头注意力机制中的头数。在Transformer模型中，多头注意力允许模型在不同的表示子空间中并行处理信息。
+
+num_encoder_layers: 编码器层的数量，即Transformer模型中的Transformer层数。
+
+num_head_layers: 在编码器和解码器中使用的多头注意力层的数量。
+
+wri_dec_layers: 书写解码器的层数。
+
+gly_dec_layers: 笔画解码器的层数。
+
+dim_feedforward: 前馈神经网络中隐藏层的大小。
+
+dropout: 在模型中使用的dropout概率，用于正则化和防止过拟合。
+
+activation: 前馈神经网络中使用的激活函数的类型。
+
+normalize_before: 一个布尔值，指示在应用多头注意力和前馈神经网络之前是否对输入进行层归一化。
+
+return_intermediate_dec: 一个布尔值，指示是否在解码过程中返回中间结果。
+"""
+
 
 class SDT_Generator(nn.Module):
-    """
-    d_model: 模型的输入和输出的维度。在Transformer模型中，这通常是词嵌入的维度。
 
-    nhead: 多头注意力机制中的头数。在Transformer模型中，多头注意力允许模型在不同的表示子空间中并行处理信息。
-
-    num_encoder_layers: 编码器层的数量，即Transformer模型中的Transformer层数。
-
-    num_head_layers: 在编码器和解码器中使用的多头注意力层的数量。
-
-    wri_dec_layers: 书写解码器的层数。
-
-    gly_dec_layers: 笔画解码器的层数。
-
-    dim_feedforward: 前馈神经网络中隐藏层的大小。
-
-    dropout: 在模型中使用的dropout概率，用于正则化和防止过拟合。
-
-    activation: 前馈神经网络中使用的激活函数的类型。
-
-    normalize_before: 一个布尔值，指示在应用多头注意力和前馈神经网络之前是否对输入进行层归一化。
-
-    return_intermediate_dec: 一个布尔值，指示是否在解码过程中返回中间结果。
-    """
-    def __init__(self, d_model=512, nhead=8, num_encoder_layers=2, num_head_layers=1,
-                 wri_dec_layers=2, gly_dec_layers=2, dim_feedforward=2048, dropout=0.1,
-                 activation="relu", normalize_before=True, return_intermediate_dec=True):
+    def __init__(self,
+                 d_model=512,
+                 nhead=8,
+                 num_encoder_layers=2,
+                 num_head_layers=1,
+                 wri_dec_layers=2,
+                 gly_dec_layers=2,
+                 dim_feedforward=2048,
+                 dropout=0.1,
+                 activation="relu",
+                 normalize_before=True,
+                 return_intermediate_dec=True):
         super(SDT_Generator, self).__init__()
-        ### style encoder with dual heads
-        # self.Feat_Encoder = nn.Sequential(*([nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)] + list(
-        #     models.resnet18(pretrained=True).children())[1:-2]))
-        self.Feat_Encoder = nn.Sequential(*([nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)] + list(
-            models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).children())[1:-2]))
-        encoder_layer = TransformerEncoderLayer(d_model, nhead, dim_feedforward,
-                                                dropout, activation, normalize_before)
+        # style encoder with dual heads
+        # Feat_Encoder 是一个卷积层和一个预训练的 ResNet-18 模型的特征提取器，它可以用于提取图像的特征
+        self.Feat_Encoder = nn.Sequential(*(  # 一个输入通道，输出64个通道。卷积核大小为7，步长为2，填充为3。bias 设置为 False 表示不使用偏置项。
+                [nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)]
+                +
+                # 获取了 ResNet-18 模型的子模块列表，然后去掉了列表的第一个和最后两个模块。
+                # 这些被去掉的模块通常是 ResNet-18 模型的头部，包括全局平均池化层和全连接层。
+                # 从列表的第二个元素开始，一直到倒数第三个元素结束，不包括这两个元素
+                list(models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).children())[1:-2]
+        ))
+        encoder_layer = TransformerEncoderLayer(
+            d_model, nhead, dim_feedforward, dropout, activation, normalize_before
+        )
+        # Transformer 编码器 用于对输入的特征进行编码，以提取全局的风格信息。
         self.base_encoder = TransformerEncoder(encoder_layer, num_encoder_layers, None)
         writer_norm = nn.LayerNorm(d_model) if normalize_before else None
         glyph_norm = nn.LayerNorm(d_model) if normalize_before else None
+        # Writer Head 和 Glyph Head: 这两个头部分别用于提取作者风格和字符风格。
+        # 它们使用相同的 Transformer 编码器层，但可以有不同的层数。
         self.writer_head = TransformerEncoder(encoder_layer, num_head_layers, writer_norm)
         self.glyph_head = TransformerEncoder(encoder_layer, num_head_layers, glyph_norm)
 
-        ### content ecoder
+        # content encoder
+        # 内容编码器 用于对输入的内容进行编码，以提取内容信息。
         self.content_encoder = Content_TR(d_model, num_encoder_layers)
 
-        ### decoder for receiving writer-wise and character-wise styles
-        decoder_layer = TransformerDecoderLayer(d_model, nhead, dim_feedforward,
-                                                dropout, activation, normalize_before)
+        # decoder for receiving writer-wise and character-wise styles
+        decoder_layer = TransformerDecoderLayer(
+            d_model, nhead, dim_feedforward, dropout, activation, normalize_before
+        )
         wri_decoder_norm = nn.LayerNorm(d_model) if normalize_before else None
-        self.wri_decoder = TransformerDecoder(decoder_layer, wri_dec_layers, wri_decoder_norm,
-                                              return_intermediate=return_intermediate_dec)
+        self.wri_decoder = TransformerDecoder(
+            decoder_layer, wri_dec_layers, wri_decoder_norm, return_intermediate=return_intermediate_dec
+        )
         gly_decoder_norm = nn.LayerNorm(d_model) if normalize_before else None
-        self.gly_decoder = TransformerDecoder(decoder_layer, gly_dec_layers, gly_decoder_norm,
-                                              return_intermediate=return_intermediate_dec)
+        self.gly_decoder = TransformerDecoder(
+            decoder_layer, gly_dec_layers, gly_decoder_norm, return_intermediate=return_intermediate_dec
+        )
 
-        ### two mlps that project style features into the space where nce_loss is applied
+        # two 多层感知器(mlp)s that project style features into the space where nce_loss is applied
+        # 用于将提取的风格特征投影到一个较低维度的空间
+        # 将风格特征从高维空间投影到一个较低维度的空间。这个过程通常被称为特征提取或降维，因为它可以帮助模型更有效地处理数据。
         self.pro_mlp_writer = nn.Sequential(
-            nn.Linear(512, 4096), nn.GELU(), nn.Linear(4096, 256))
+            nn.Linear(512, 4096),
+            nn.GELU(),
+            nn.Linear(4096, 256)
+        )
         self.pro_mlp_character = nn.Sequential(
-            nn.Linear(512, 4096), nn.GELU(), nn.Linear(4096, 256))
-
+            nn.Linear(512, 4096),
+            nn.GELU(),
+            nn.Linear(4096, 256)
+        )
+        # 序列到嵌入 (SeqtoEmb) 和 嵌入到序列 (EmbtoSeq)
+        # 这两个模块用于处理序列数据和嵌入数据之间的转换。
         self.SeqtoEmb = SeqtoEmb(input_dim=d_model)
         self.EmbtoSeq = EmbtoSeq(input_dim=d_model)
         self.add_position = PositionalEncoding(dropout=0.1, dim=d_model)
+        # 参数重置 用于重置模型的参数
         self._reset_parameters()
 
     def _reset_parameters(self):

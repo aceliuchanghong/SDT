@@ -6,16 +6,24 @@ from torchvision.models.resnet import ResNet18_Weights
 
 ### content encoder
 class Content_TR(nn.Module):
-    def __init__(self, d_model=256, nhead=8, num_encoder_layers=3,
-                 dim_feedforward=2048, dropout=0.1, activation="relu",
-                 normalize_before=True):
+    def __init__(self,
+                 d_model=256,
+                 nhead=8,
+                 num_encoder_layers=3,
+                 dim_feedforward=2048,
+                 dropout=0.1,
+                 activation="relu",
+                 normalize_before=True
+                 ):
         super(Content_TR, self).__init__()
-        # self.Feat_Encoder = nn.Sequential(*([nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)] + list(
-        #     models.resnet18(pretrained=True).children())[1:-2]))
-        self.Feat_Encoder = nn.Sequential(*([nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)] + list(
-            models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).children())[1:-2]))
-        encoder_layer = TransformerEncoderLayer(d_model, nhead, dim_feedforward,
-                                                dropout, activation, normalize_before)
+        self.Feat_Encoder = nn.Sequential(*(
+                [nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)]
+                +
+                list(models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).children())[1:-2]
+        ))
+        encoder_layer = TransformerEncoderLayer(
+            d_model, nhead, dim_feedforward, dropout, activation, normalize_before
+        )
         encoder_norm = nn.LayerNorm(d_model) if normalize_before else None
         self.add_position = PositionalEncoding(dropout=0.1, dim=d_model)
         self.encoder = TransformerEncoder(encoder_layer, num_encoder_layers, norm=encoder_norm)
@@ -29,9 +37,9 @@ class Content_TR(nn.Module):
         return x
 
 
-### For the training of Chinese handwriting generation task,
-### we first pre-train the content encoder for character classification.
-### No need to pre-train the encoder in other languages (e.g, Japanese, English and Indic).
+# For the training of Chinese handwriting generation task,
+# we first pre-train the content encoder for character classification.
+# No need to pre-train the encoder in other languages (e.g, Japanese, English and Indic).
 
 class Content_Cls(nn.Module):
     def __init__(self, d_model=512, num_encoder_layers=3, num_classes=6763) -> None:

@@ -43,7 +43,6 @@ def main(opt):
                           num_head_layers=cfg.MODEL.NUM_HEAD_LAYERS,
                           wri_dec_layers=cfg.MODEL.WRI_DEC_LAYERS,
                           gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS).to('cuda')
-    ### load checkpoint
     if len(opt.pretrained_model) > 0:
         model.load_state_dict(torch.load(opt.pretrained_model))
         print('load pretrained model from {}'.format(opt.pretrained_model))
