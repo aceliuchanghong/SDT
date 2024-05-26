@@ -84,7 +84,7 @@ def main(opt):
 if __name__ == '__main__':
     """Parse input arguments"""
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input', dest='input_path', default='from/from3.jpg',
+    parser.add_argument('--input', dest='input_path', default='from/from4.jpg',
                         help='Please set the input path')
     parser.add_argument('--output', dest='output_path', default='font',
                         help='Please set the output path')
