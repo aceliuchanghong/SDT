@@ -68,16 +68,16 @@ def coords_render(coordinates, split, width, height, thickness, board=5):
     coordinates[:, 1] = np.cumsum(coordinates[:, 1])
     if split:
         ids = np.where(coordinates[:, -1] == 1)[0]
-        if len(ids) < 1:  ### if not exist [0, 0, 1]
+        if len(ids) < 1:  # if not exist [0, 0, 1]
             ids = np.where(coordinates[:, 3] == 1)[0] + 1
-            if len(ids) < 1:  ### if not exist [0, 1, 0]
+            if len(ids) < 1:  # if not exist [0, 1, 0]
                 ids = np.array([len(coordinates)])
                 xys_split = np.split(coordinates, ids, axis=0)[:-1]  # remove the blank list
             else:
                 xys_split = np.split(coordinates, ids, axis=0)
-        else:  ### if exist [0, 0, 1]
+        else:  # if exist [0, 0, 1]
             remove_end = np.split(coordinates, ids, axis=0)[0]
-            ids = np.where(remove_end[:, 3] == 1)[0] + 1  ### break in [0, 1, 0]
+            ids = np.where(remove_end[:, 3] == 1)[0] + 1  # break in [0, 1, 0]
             xys_split = np.split(remove_end, ids, axis=0)
     else:
         xys_split = None
@@ -114,8 +114,9 @@ def fix_seed(random_seed):
         torch.manual_seed(random_seed)
 
 
-### model loads specific parameters (i.e., par) from pretrained_model
+# model loads specific parameters (i.e., par) from pretrained_model
 def load_specific_dict(model, pretrained_model, par):
+    # 它获取模型的当前状态字典（model.state_dict()），这包含了模型的所有参数
     model_dict = model.state_dict()
     pretrained_dict = torch.load(pretrained_model)
     if par in list(pretrained_dict.keys())[0]:
@@ -144,16 +145,16 @@ description: convert the np version of coordinates to the list counterpart
 def dxdynp_to_list(coordinates):
     ids = np.where(coordinates[:, -1] == 1)[0]
     length = coordinates[:, 2:4].sum()
-    if len(ids) < 1:  ### if not exist [0, 0, 1]
+    if len(ids) < 1:  # if not exist [0, 0, 1]
         ids = np.where(coordinates[:, 3] == 1)[0] + 1
-        if len(ids) < 1:  ### if not exist [0, 1, 0]
+        if len(ids) < 1:  # if not exist [0, 1, 0]
             ids = np.array([len(coordinates)])
             xys_split = np.split(coordinates, ids, axis=0)[:-1]  # remove the blank list
         else:
             xys_split = np.split(coordinates, ids, axis=0)
-    else:  ### if exist [0, 0, 1]
+    else:  # if exist [0, 0, 1]
         remove_end = np.split(coordinates, ids, axis=0)[0]
-        ids = np.where(remove_end[:, 3] == 1)[0] + 1  ### break in [0, 1, 0]
+        ids = np.where(remove_end[:, 3] == 1)[0] + 1  # break in [0, 1, 0]
         xys_split = np.split(remove_end, ids, axis=0)[:-1]  # split from the remove_end
 
     coord_list = []

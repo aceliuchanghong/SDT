@@ -20,7 +20,8 @@ def main(opt):
     logs = set_log(cfg.OUTPUT_DIR, opt.cfg_file, opt.log_name)
     """ set dataset"""
     train_dataset = ScriptDataset(
-        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TRAIN.ISTRAIN, cfg.MODEL.NUM_IMGS)
+        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TRAIN.ISTRAIN, cfg.MODEL.NUM_IMGS
+    )
     print('number of training images: ', len(train_dataset))
     train_loader = torch.utils.data.DataLoader(train_dataset,
                                                batch_size=cfg.TRAIN.IMS_PER_BATCH,
@@ -29,7 +30,8 @@ def main(opt):
                                                collate_fn=train_dataset.collate_fn_,
                                                num_workers=cfg.DATA_LOADER.NUM_THREADS)
     test_dataset = ScriptDataset(
-        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS)
+        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS
+    )
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=cfg.TRAIN.IMS_PER_BATCH,
                                               shuffle=True,
@@ -64,7 +66,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--pretrained_model', default='',
                         dest='pretrained_model', required=False, help='continue to train model')
-    parser.add_argument('--content_pretrained', default='model_zoo/position_layer2_dim512_iter138k_test_acc0.9443.pth',
+    parser.add_argument('--content_pretrained',
+                        default='model_zoo/position_layer2_dim512_iter138k_test_acc0.9443.pth',
                         dest='content_pretrained', required=False, help='continue to train content encoder')
     parser.add_argument('--cfg', dest='cfg_file', default='configs/CHINESE_CASIA.yml',
                         help='Config file for training (and optionally testing)')

@@ -4,7 +4,7 @@ from einops import rearrange
 from torchvision.models.resnet import ResNet18_Weights
 
 
-### content encoder
+# content encoder ==> Content Transformer
 class Content_TR(nn.Module):
     def __init__(self,
                  d_model=256,
@@ -40,7 +40,7 @@ class Content_TR(nn.Module):
 # For the training of Chinese handwriting generation task,
 # we first pre-train the content encoder for character classification.
 # No need to pre-train the encoder in other languages (e.g, Japanese, English and Indic).
-
+# Content_Cls ==> Content Classifier
 class Content_Cls(nn.Module):
     def __init__(self, d_model=512, num_encoder_layers=3, num_classes=6763) -> None:
         super(Content_Cls, self).__init__()

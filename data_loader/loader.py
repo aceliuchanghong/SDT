@@ -97,7 +97,7 @@ class ScriptDataset(Dataset):
         img_list = np.expand_dims(np.array(img_list), 1)  # [N, C, H, W], C=1
         coords = normalize_xys(coords)  # Coordinate Normalization
 
-        #### Convert absolute coordinate values into relative ones
+        # Convert absolute coordinate values into relative ones
         coords[1:, :2] = coords[1:, :2] - coords[:-1, :2]
 
         writer_id = self.writer_dict[fname]
@@ -130,7 +130,7 @@ class ScriptDataset(Dataset):
         for i in range(bs):
             s = batch_data[i]['coords'].shape[0]
             output['coords'][i, :s] = batch_data[i]['coords']
-            output['coords'][i, 0, :2] = 0  ### put pen-down state in the first token
+            output['coords'][i, 0, :2] = 0  # put pen-down state in the first token
             output['coords_len'][i] = s
             output['character_id'][i] = batch_data[i]['character_id']
             output['writer_id'][i] = batch_data[i]['writer_id']
