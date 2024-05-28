@@ -1,5 +1,7 @@
 ## Style-Disentangled Transformer(SDT)
-论文解读
+
+论文总体框架
+
 ```
 SDT:
 - a dual-head style encoder
@@ -12,16 +14,22 @@ style encoder
 
 
 content encoder:
-    ResNet18_Weights: 作为CNN的核心学校特征Qmap (h ,w ,c(通道维度))
+    ResNet18_Weights: 作为CNN的核心,核心学习特征Qmap (h ,w ,c(通道维度))
 
 multi-layer transformer decoder:
     Lpre: 笔迹移动的Loss
     Lcls: 笔迹状态的Loss
 ```
 
+总体架构
+
 ![img.png](paper%2Fpics%2Fimg.png)
 
+总体Loss
+
 ![img_1.png](paper%2Fpics%2Fimg_1.png)
+
+论文数据集生成
 
 ### create a test env
 
@@ -132,6 +140,13 @@ python evaluate.py --data_path Generated/Chinese
 
 ```
 python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --style_path style_samples
+```
+
+**png转ttf**
+
+```shell
+# see here
+git clone https://github.com/aceliuchanghong/PngToTTF
 ```
 
 ### ValueIssue

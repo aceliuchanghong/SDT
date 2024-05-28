@@ -5,14 +5,19 @@ import shutil
 
 
 def main(opt):
-    # 膨胀腐蚀大小 即将笔画膨胀 避免将偏旁单独分割 根据图片请况自行设置
-    rect_size = 8
-    # 字体小于该值忽略 20*20
-    ignore_min_size = 80
-    # 字体大于该值忽略 100*100
-    ignore_max_size = 150
-    # 图片选取偏移
-    offset_param = 48
+    # # 膨胀腐蚀大小 即将笔画膨胀 避免将偏旁单独分割 根据图片请况自行设置
+    # rect_size = 8
+    # # 字体小于该值忽略 20*20
+    # ignore_min_size = 80
+    # # 字体大于该值忽略 100*100
+    # ignore_max_size = 150
+    # # 图片选取偏移
+    # offset_param = 48
+
+    rect_size = opt.rect_size
+    ignore_min_size = opt.ignore_min_size
+    ignore_max_size = opt.ignore_max_size
+    offset_param = opt.offset_param
 
     # 需要切分的图片 input/input.jpg
     input_file = opt.input_path
@@ -82,11 +87,21 @@ def main(opt):
 
 
 if __name__ == '__main__':
-    """Parse input arguments"""
+    """Parse input arguments
+    python cut_pics.py --input 'from/DCIM.jpg' --rect_size 8 --ignore_min_size 80 --ignore_max_size 150 --offset_param 48
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', dest='input_path', default='from/from4.jpg',
                         help='Please set the input path')
     parser.add_argument('--output', dest='output_path', default='font',
                         help='Please set the output path')
+    parser.add_argument('--rect_size', dest='rect_size', default=8, type=int,
+                        help='膨胀腐蚀大小')
+    parser.add_argument('--ignore_min_size', dest='ignore_min_size', default=80, type=int,
+                        help='字体小于该值忽略')
+    parser.add_argument('--ignore_max_size', dest='ignore_max_size', default=150, type=int,
+                        help='字体大于该值忽略')
+    parser.add_argument('--offset_param', dest='offset_param', default=48, type=int,
+                        help='图片选取偏移,选取图片扩大范围')
     opt = parser.parse_args()
     main(opt)
