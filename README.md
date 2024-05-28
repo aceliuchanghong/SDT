@@ -1,10 +1,33 @@
 ## Style-Disentangled Transformer(SDT)
+论文解读
+```
+SDT:
+- a dual-head style encoder
+- a content encoder
+- a Transformer decoder
+
+style encoder
+    WriterNCE Lwri : 同一作者对于不同字的风格
+    GlyphNCE Lgly : 同一个字不同作者的风格
+
+
+content encoder:
+    ResNet18_Weights: 作为CNN的核心学校特征Qmap (h ,w ,c(通道维度))
+
+multi-layer transformer decoder:
+    Lpre: 笔迹移动的Loss
+    Lcls: 笔迹状态的Loss
+```
+
+![img.png](paper%2Fpics%2Fimg.png)
+
+![img_1.png](paper%2Fpics%2Fimg_1.png)
 
 ### create a test env
 
 ```shell
 pip freeze > requirements.txt
-conda create -n SDTLog python=3.8
+conda create -n SDTLog python=3.10
 conda activate SDTLog
 pip install -r requirements.txt --proxy=127.0.0.1:10809
 nvidia-smi

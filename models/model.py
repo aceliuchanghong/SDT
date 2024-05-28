@@ -21,9 +21,9 @@ num_encoder_layers: 编码器层的数量，即Transformer模型中的Transforme
 
 num_head_layers: 在编码器和解码器中使用的多头注意力层的数量。
 
-wri_dec_layers: 书写解码器的层数。
+wri_dec_layers: 书写解码器的层。同一作者对于不同字的风格
 
-gly_dec_layers: 笔画解码器的层数。
+gly_dec_layers: 笔画解码器的层。同一个字不同作者的风格
 
 dim_feedforward: 前馈神经网络中隐藏层的大小。
 
