@@ -53,6 +53,8 @@ def main(opt):
     spacing = rect_size // 2 - 1
     cut_frame_color = (0, 255, 0)
     font_frame_color = (255, 0, 0)
+
+    token = 1
     for c in contours:
         x, y, w, h = cv2.boundingRect(c)
         if w < ignore_min_size or h < ignore_min_size or w > ignore_max_size or h > ignore_max_size:
@@ -81,7 +83,9 @@ def main(opt):
         path = opt.output_path + os.path.sep + "result" + os.path.sep
         if not os.path.exists(path):
             os.makedirs(path)
-        cv2.imwrite(path + str(x) + "_" + str(y) + ".jpg", temp)
+        cv2.imwrite(path + str(token) + "_" + str(x) + "_" + str(y) + ".jpg", temp)
+
+        token += 1
 
     cv2.imwrite(output_path + "result.jpg", thresh_rgb)
 

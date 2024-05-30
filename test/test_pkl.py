@@ -1,6 +1,6 @@
 import os
 import pickle
-
+import matplotlib.pyplot as plt
 import lmdb
 
 script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
@@ -17,6 +17,8 @@ if __name__ == '__main__':
     content = pickle.load(open(os.path.join(data_path, script[dataset][1]), 'rb'))
     for _ in content:
         print(_, content[_])
+        plt.imshow(content[_], cmap='gray')
+        plt.show()
         break
     char_dict = pickle.load(open(os.path.join(data_path, 'character_dict.pkl'), 'rb'))
     print(char_dict)
@@ -29,6 +31,15 @@ if __name__ == '__main__':
 
     test_style_samples01 = pickle.load(open(os.path.join(data_path, 'test_style_samples', 'C031-f.pkl'), 'rb'))
     print(len(test_style_samples01))
+    i = 0
     for item in test_style_samples01:
-        print(item)
-        break
+        # print(item)
+        """or
+        cv2.imshow("aa", item['img'])
+        cv2.waitKey(0)
+        """
+        plt.imshow(item['img'], cmap='gray')
+        plt.show()
+        i += 1
+        if i > 3:
+            break

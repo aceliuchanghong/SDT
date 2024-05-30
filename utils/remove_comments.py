@@ -1,7 +1,8 @@
 import re
+import argparse
 
 
-def remove_comments(input_file):
+def remove_comments(input_file, printIt=False):
     with open(input_file, 'r', encoding='utf-8') as f:
         lines = f.readlines()
         ans = ''
@@ -30,13 +31,24 @@ def remove_comments(input_file):
             line = line.rstrip()
             # 如果行还有内容，打印出来
             if line:
-                print(line)
+                if printIt:
+                    print(line)
                 ans += line + '\n'
     return ans
 
 
 if __name__ == '__main__':
-    input_file = '../test.py'
-    text = remove_comments(input_file)
-    with open('../checkpoint_path/00.py', 'w', encoding='utf-8') as f:
+    """
+    python remove_comments.py --input 'structure.py' --output '00.py'
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', dest='input_file', default='structure.py',
+                        help='input path')
+    parser.add_argument('--output', dest='output_file', default='00.py',
+                        help='output path')
+    parser.add_argument('--print', dest='print', action='store_true',
+                        help='print the result')
+    opt = parser.parse_args()
+    text = remove_comments(opt.input_file, opt.print)
+    with open(opt.output_file, 'w', encoding='utf-8') as f:
         f.write(text)

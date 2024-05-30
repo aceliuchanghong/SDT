@@ -118,7 +118,8 @@ class ScriptDataset(Dataset):
     def collate_fn_(self, batch_data):
         bs = len(batch_data)
         max_len = max([s['coords'].shape[0] for s in batch_data]) + 1
-        output = {'coords': torch.zeros((bs, max_len, 5)),  # (x, y, state_1, state_2, state_3)
+        output = {'coords': torch.zeros((bs, max_len, 5)),
+                  # (x, y, state_1, state_2, state_3)==> (x,y,pen_down,pen_up,pen_end)
                   'coords_len': torch.zeros((bs,)),
                   'character_id': torch.zeros((bs,)),
                   'writer_id': torch.zeros((bs,)),
@@ -130,7 +131,7 @@ class ScriptDataset(Dataset):
         for i in range(bs):
             s = batch_data[i]['coords'].shape[0]
             output['coords'][i, :s] = batch_data[i]['coords']
-            output['coords'][i, 0, :2] = 0  # put pen-down state in the first token
+            output['coords'][i, 0, :2] = 0  # put pen_down state in the first token
             output['coords_len'][i] = s
             output['character_id'][i] = batch_data[i]['character_id']
             output['writer_id'][i] = batch_data[i]['writer_id']

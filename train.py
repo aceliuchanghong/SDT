@@ -22,16 +22,16 @@ def main(opt):
     train_dataset = ScriptDataset(
         cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TRAIN.ISTRAIN, cfg.MODEL.NUM_IMGS
     )
-    print('number of training images: ', len(train_dataset))
+    test_dataset = ScriptDataset(
+        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS
+    )
+    print('number of training images: ', len(train_dataset), 'number of test images: ', len(test_dataset))
     train_loader = torch.utils.data.DataLoader(train_dataset,
                                                batch_size=cfg.TRAIN.IMS_PER_BATCH,
                                                shuffle=True,
                                                drop_last=False,
                                                collate_fn=train_dataset.collate_fn_,
                                                num_workers=cfg.DATA_LOADER.NUM_THREADS)
-    test_dataset = ScriptDataset(
-        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS
-    )
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=cfg.TRAIN.IMS_PER_BATCH,
                                               shuffle=True,
@@ -39,12 +39,22 @@ def main(opt):
                                               drop_last=False,
                                               collate_fn=test_dataset.collate_fn_,
                                               num_workers=cfg.DATA_LOADER.NUM_THREADS)
-    char_dict = test_dataset.char_dict
+    char_dict = train_dataset.char_dict
     """ build model, criterion and optimizer"""
     model = SDT_Generator(num_encoder_layers=cfg.MODEL.ENCODER_LAYERS,
                           num_head_layers=cfg.MODEL.NUM_HEAD_LAYERS,
                           wri_dec_layers=cfg.MODEL.WRI_DEC_LAYERS,
-                          gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS).to('cuda')
+                          gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS)
+
+    """
+    # 使用nn.DataParallel model在多个GPU上运行
+    if torch.cuda.device_count() > 1:
+        print("Let's use ", torch.cuda.device_count(), " GPUs!")
+        import torch.nn as nn
+        model = nn.DataParallel(model)
+    """
+
+    model.to('cuda')
     if len(opt.pretrained_model) > 0:
         model.load_state_dict(torch.load(opt.pretrained_model))
         print('load pretrained model from {}'.format(opt.pretrained_model))
