@@ -38,7 +38,7 @@ pip freeze > requirements.txt
 conda create -n SDTLog python=3.10
 conda activate SDTLog
 pip install -r requirements.txt --proxy=127.0.0.1:10809
-nvidia-smi
+watch -n 1 nvidia-smi
 ```
 
 ### 📂 Folder Structure

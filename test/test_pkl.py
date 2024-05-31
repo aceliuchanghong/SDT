@@ -41,5 +41,5 @@ if __name__ == '__main__':
         plt.imshow(item['img'], cmap='gray')
         plt.show()
         i += 1
-        if i > 3:
+        if i > 13:
             break

@@ -12,6 +12,28 @@ import codecs
 import glob
 import cv2
 
+"""
+数据预处理
+transforms.ToTensor(): 
+这个函数将PIL图像或NumPy的ndarray转换为形状为[C, H, W]的PyTorch张量，其中C是通道数，H是图像高度，W是图像宽度
+Normalize
+每个通道进行归一化处理
+这个例子中，归一化是通过减去0.5然后除以0.5来完成的，这是一个常见的归一化方法，它将数据缩放到[-1, 1]的范围内。
+
+正确的做法是先计算训练数据的均值和标准差，然后使用这些值来初始化transforms.Normalize。例如：
+# 假设train_data是一个包含训练图像的数据集
+train_data = datasets.ImageFolder(root='path_to_train_data', transform=transforms.ToTensor())
+
+# 计算均值和标准差
+mean = torch.mean(train_data.data / 255.0)
+std = torch.std(train_data.data / 255.0)
+
+# 使用计算得到的均值和标准差初始化Normalize
+transform_data = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize(mean=(mean,), std=(std,))
+])
+"""
 transform_data = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(mean=(0.5), std=(0.5))
@@ -19,7 +41,8 @@ transform_data = transforms.Compose([
 
 script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
           'JAPANESE': ['TUATHANDS_JAPANESE', 'Japanese_content.pkl'],
-          "ENGLISH": ['CASIA_ENGLISH', 'English_content.pkl']
+          "ENGLISH": ['CASIA_ENGLISH', 'English_content.pkl'],
+          "CHINESE_TEST": ['CASIA_CHINESE_TEST', 'Chinese_content.pkl'],
           }
 
 
@@ -45,7 +68,8 @@ class ScriptDataset(Dataset):
             raise IOError("input the correct lmdb path:", lmdb_path)
 
         self.lmdb = lmdb.open(lmdb_path, max_readers=8, readonly=True, lock=False, readahead=False, meminit=False)
-        if script[dataset][0] == "CASIA_CHINESE":
+        # max_len 变量用于控制在创建数据集时，是否过滤掉具有更多轨迹点的字符
+        if script[dataset][0] in ("CASIA_CHINESE", "CASIA_CHINESE_TEST"):
             self.max_len = -1  # Do not filter characters with many trajectory points
         else:  # Japanese, Indic, English
             self.max_len = 150
@@ -119,7 +143,7 @@ class ScriptDataset(Dataset):
         bs = len(batch_data)
         max_len = max([s['coords'].shape[0] for s in batch_data]) + 1
         output = {'coords': torch.zeros((bs, max_len, 5)),
-                  # (x, y, state_1, state_2, state_3)==> (x,y,pen_down,pen_up,pen_end)
+                  # (x, y, state_1, state_2, state_3)==> (x,y,pen_down,pen_up,pen_end) 下笔、提笔、终止
                   'coords_len': torch.zeros((bs,)),
                   'character_id': torch.zeros((bs,)),
                   'writer_id': torch.zeros((bs,)),
