@@ -13,6 +13,10 @@ dataset = 'CHINESE'
 num_img = 15
 
 if __name__ == '__main__':
+    """
+    C031-f.pkl 文件结构
+    item['img'],item['label']
+    """
     data_path = os.path.join(root, script[dataset][0])
     content = pickle.load(open(os.path.join(data_path, script[dataset][1]), 'rb'))
     for _ in content:
@@ -33,7 +37,7 @@ if __name__ == '__main__':
     print(len(test_style_samples01))
     i = 0
     for item in test_style_samples01:
-        # print(item)
+        # print(item,item['img'],item['label'])
         """or
         cv2.imshow("aa", item['img'])
         cv2.waitKey(0)

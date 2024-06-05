@@ -12,7 +12,6 @@ style encoder
     WriterNCE Lwri : 同一作者对于不同字的风格
     GlyphNCE Lgly : 同一个字不同作者的风格
 
-
 content encoder:
     ResNet18_Weights: 作为CNN的核心,核心学习特征Qmap (h ,w ,c(通道维度))
 
@@ -29,7 +28,18 @@ multi-layer transformer decoder:
 
 ![img_1.png](paper%2Fpics%2Fimg_1.png)
 
-论文数据集生成
+论文数据集
+```text
+pkl 文件结构:
+    item['img'] ==>样子 (64, 64)
+    item['label'] ==>文字
+mdb 文件结构eg:
+    num_sample: 224589
+    tag_char: 累
+    coords.shape: (42, 5)
+        (x,y,pen_down,pen_up,pen_end)下笔、提笔、终止
+    fname: C004-f.pot
+```
 
 ### create a test env
 

@@ -270,6 +270,9 @@ class TransformerDecoderLayer(nn.Module):
 
 
 def _get_clones(module, N):
+    """
+    用于复制模块N次，并将它们放入一个nn.ModuleList中
+    """
     return nn.ModuleList([copy.deepcopy(module) for i in range(N)])
 
 

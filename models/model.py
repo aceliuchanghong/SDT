@@ -1,5 +1,3 @@
-import torch
-import torch.nn as nn
 import torchvision.models as models
 from models.transformer import *
 from models.encoder import Content_TR
@@ -52,6 +50,18 @@ class SDT_Generator(nn.Module):
                  normalize_before=True,
                  return_intermediate_dec=True):
         super(SDT_Generator, self).__init__()
+        """
+        # 假设我们有一些模块列表
+        modules = [
+            nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2),
+            # ... 其他模块
+        ]
+        
+        # 直接将列表传递给 nn.Sequential
+        model = nn.Sequential(modules)
+        """
         # style encoder with dual heads
         # Feat_Encoder 是一个卷积层和一个预训练的 ResNet-18 模型的特征提取器，它可以用于提取图像的特征
         self.Feat_Encoder = nn.Sequential(*(  # 一个输入通道，输出64个通道。卷积核大小为7，步长为2，填充为3。bias 设置为 False 表示不使用偏置项。
