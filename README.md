@@ -29,6 +29,7 @@ multi-layer transformer decoder:
 ![img_1.png](paper%2Fpics%2Fimg_1.png)
 
 论文数据集
+
 ```text
 pkl 文件结构:
     item['img'] ==>样子 (64, 64)
@@ -39,6 +40,21 @@ mdb 文件结构eg:
     coords.shape: (42, 5)
         (x,y,pen_down,pen_up,pen_end)下笔、提笔、终止
     fname: C004-f.pot
+```
+
+Func
+
+```text
+view
+permute
+mean
+stack
+reshape
+cat
+transpose
+
+rearrange
+repeat
 ```
 
 ### create a test env

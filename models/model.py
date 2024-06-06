@@ -119,16 +119,33 @@ class SDT_Generator(nn.Module):
         self.SeqtoEmb = SeqtoEmb(input_dim=d_model)
         self.EmbtoSeq = EmbtoSeq(input_dim=d_model)
         self.add_position = PositionalEncoding(dropout=0.1, dim=d_model)
-        # 参数重置 用于重置模型的参数
+        # 参数重置 用于初始化模型的参数
         self._reset_parameters()
 
     def _reset_parameters(self):
         for p in self.parameters():
+            """
+            如果参数的维度大于 1，则使用 Xavier 均匀初始化方法来初始化参数 p。
+            Xavier 初始化是一种常用的权重初始化方法，它确保前向传播和反向传播的信号在深度神经网络中保持平衡，
+            有助于加快训练速度和提高模型的性能。
+            总的来说，这段代码的作用是在模型中对所有二维参数（即权重矩阵）
+            使用 Xavier 均匀初始化方法进行初始化。这是一种常见的初始化策略，特别适用于深度学习模型。
+            """
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
     def random_double_sampling(self, x, ratio=0.25):
         """
+        它用于在序列数据中进行双重采样。双重采样通常用于训练序列模型
+        通过随机排序每个组内的序列元素来生成锚点和正样本，从而在训练序列模型时提供正样本对。
+
+        例如Transformer，以便在每个批次中生成正样本对（例如，一个输入序列和其对应的目标序列）。
+        random_double_sampling方法接受一个四维的输入张量x，形状为[L, B, N, D]，其中：
+        L是序列的长度。
+        B是批次大小。
+        N是每个序列中要采样的组数。
+        D是每个组的维度。
+
         Sample the positive pair (i.e., o and o^+) within a character by per-sample shuffling.
         Per-sample shuffling is done by argsort random noise.
         x: [L, B, N, D], sequence
@@ -136,10 +153,13 @@ class SDT_Generator(nn.Module):
         """
         L, B, N, D = x.shape  # length, batch, group_number, dim
         x = rearrange(x, "L B N D -> B N L D")
-        noise = torch.rand(B, N, L, device=x.device)  # noise in [0, 1]
+        # 这个噪声张量用于对每个组内的序列进行随机排序。 noise in [0, 1]
+        noise = torch.rand(B, N, L, device=x.device)
         # sort noise for each sample
         ids_shuffle = torch.argsort(noise, dim=2)
 
+        # 计算出需要保留的锚点（anchor）和正样本（positive）的数量。
+        # 锚点数量是总长度的ratio倍，正样本数量是锚点数量的2倍。
         anchor_tokens, pos_tokens = int(L * ratio), int(L * 2 * ratio)
         ids_keep_anchor, ids_keep_pos = ids_shuffle[:, :, :anchor_tokens], ids_shuffle[:, :, anchor_tokens:pos_tokens]
         x_anchor = torch.gather(
@@ -150,14 +170,17 @@ class SDT_Generator(nn.Module):
 
     # the shape of style_imgs is [B, 2*N, C, H, W] during training
     def forward(self, style_imgs, seq, char_img):
+        # style_imgs 是风格图片的输入，seq 是序列输入，char_img 是字符图片输入。
+        # 风格图片的批次大小、图片数量、通道数、高度和宽度。
         batch_size, num_imgs, in_planes, h, w = style_imgs.shape
 
         # style_imgs: [B, 2*N, C:1, H, W] -> FEAT_ST_ENC: [4*N, B, C:512]
+        # -1是一个特殊的值，表示该维度的大小将通过其他维度的大小和总元素数自动推断出来
         style_imgs = style_imgs.view(-1, in_planes, h, w)  # [B*2N, C:1, H, W]
         style_embe = self.Feat_Encoder(style_imgs)  # [B*2N, C:512, 2, 2]
 
         anchor_num = num_imgs // 2
-        style_embe = style_embe.view(batch_size * num_imgs, 512, -1).permute(2, 0, 1)  # [4, B*2N, C:512]
+        style_embe = style_embe.view(batch_size * num_imgs, 512, -1).permute(2, 0, 1)  # [4, B*2N, C:512] permute,改变张量的维度顺序
         FEAT_ST_ENC = self.add_position(style_embe)
 
         memory = self.base_encoder(FEAT_ST_ENC)  # [4, B*2N, C]
@@ -171,11 +194,13 @@ class SDT_Generator(nn.Module):
 
         # writer-nce
         memory_fea = rearrange(writer_memory, 't b n c ->(t n) b c')  # [4*N, 2*B, C]
+        # 计算memory_fea张量在第0个维度上的平均值
         compact_fea = torch.mean(memory_fea, 0)  # [2*B, C]
         # compact_fea:[2*B, C:512] ->  nce_emb: [B, 2, C:128]
         pro_emb = self.pro_mlp_writer(compact_fea)
         query_emb = pro_emb[:batch_size, :]
         pos_emb = pro_emb[batch_size:, :]
+        # 将两个嵌入向量（query_emb和pos_emb）沿着第二个维度（索引为1）堆叠起来，形成一个新的张量
         nce_emb = torch.stack((query_emb, pos_emb), 1)  # [B, 2, C]
         nce_emb = nn.functional.normalize(nce_emb, p=2, dim=2)
 
@@ -184,7 +209,11 @@ class SDT_Generator(nn.Module):
         # sample the positive pair
         anc, positive = self.random_double_sampling(patch_emb)
         n_channels = anc.shape[-1]
+        # -1：这是一个特殊的值，表示该维度的大小由其他维度和总元素数量决定
         anc = anc.reshape(batch_size, -1, n_channels)
+        # 如果anc是一个形状为(m, n)的二维张量，
+        # 那么torch.mean(anc, 1, keepdim=True)将返回一个形状为(m, 1)的二维张量，
+        # 其中每个元素是原始张量对应行的均值
         anc_compact = torch.mean(anc, 1, keepdim=True)
         anc_compact = self.pro_mlp_character(anc_compact)  # [B, 1, C]
         positive = positive.reshape(batch_size, -1, n_channels)
@@ -215,6 +244,7 @@ class SDT_Generator(nn.Module):
         # [gly_dec_layers, T, B, C]
         hs = self.gly_decoder(wri_hs[-1], glyph_style, tgt_mask=tgt_mask)
 
+        # 将矩阵hs的第二和第三维度进行转置
         h = hs.transpose(1, 2)[-1]  # B T C
         pred_sequence = self.EmbtoSeq(h)
         return pred_sequence, nce_emb, nce_emb_patch
@@ -262,12 +292,11 @@ class SDT_Generator(nn.Module):
         return pred_sequence.transpose(0, 1)  # N, T, C        
 
 
-'''
-project the handwriting sequences to the transformer hidden space
-'''
-
-
 class SeqtoEmb(nn.Module):
+    """
+    project the handwriting sequences to the transformer hidden space
+    """
+
     def __init__(self, input_dim, dropout=0.1):
         super().__init__()
         self.fc_1 = nn.Linear(5, 256)
@@ -280,12 +309,11 @@ class SeqtoEmb(nn.Module):
         return x
 
 
-'''
-project the transformer hidden space to handwriting sequences
-'''
-
-
 class EmbtoSeq(nn.Module):
+    """
+    project the transformer hidden space to handwriting sequences
+    """
+
     def __init__(self, input_dim, dropout=0.1):
         super().__init__()
         self.fc_1 = nn.Linear(input_dim, 256)
@@ -298,16 +326,14 @@ class EmbtoSeq(nn.Module):
         return x
 
 
-''' 
-generate the attention mask, i.e. [[0, inf, inf],
-                                   [0, 0, inf],
-                                   [0, 0, 0]].
-The masked positions are filled with float('-inf').
-Unmasked positions are filled with float(0.0).                                     
-'''
-
-
 def generate_square_subsequent_mask(sz: int) -> Tensor:
+    """
+    generate the attention mask, i.e. [[0, inf, inf],
+                                       [0, 0, inf],
+                                       [0, 0, 0]].
+    The masked positions are filled with float('-inf').
+    Unmasked positions are filled with float(0.0).
+    """
     mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
     mask = mask.float().masked_fill(mask == 0, float(
         '-inf')).masked_fill(mask == 1, float(0.0))

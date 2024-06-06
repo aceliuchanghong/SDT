@@ -75,11 +75,23 @@ class TransformerEncoder(nn.Module):
 
 class TransformerDecoder(nn.Module):
 
-    def __init__(self, decoder_layer, num_layers, norm=None, return_intermediate=False):
+    def __init__(self,
+                 decoder_layer,
+                 num_layers,
+                 norm=None,
+                 return_intermediate=False):
         super().__init__()
         self.layers = _get_clones(decoder_layer, num_layers)
         self.num_layers = num_layers
         self.norm = norm
+        """
+        模型是否返回每个解码层的中间输出。
+        如果return_intermediate被设置为True，那么在解码过程中，模型会返回每个解码层的输出。
+        这对于理解模型在处理数据时的中间步骤非常有用，因为它允许我们观察到数据是如何在解码器中被逐步转换的。
+        例如，如果你在做图像分割任务，并且想要观察模型在处理图像时不同层次的特征图，
+        那么return_intermediate参数就非常有用。你可以选择在最后一层解码器输出最终的分割结果，
+        或者在每一层解码器输出中间结果，以便于分析和调试。
+        """
         self.return_intermediate = return_intermediate
 
     def forward(self, tgt, memory,
@@ -311,7 +323,10 @@ class PositionalEncoding(nn.Module):
        dim (int): embedding size
     """
 
-    def __init__(self, dropout, dim, max_len=500):
+    def __init__(self,
+                 dropout,
+                 dim,
+                 max_len=500):
         if dim % 2 != 0:
             raise ValueError("Cannot use sin/cos positional encoding with "
                              "odd dim (got dim={:d})".format(dim))
@@ -319,6 +334,7 @@ class PositionalEncoding(nn.Module):
         position = torch.arange(0, max_len).unsqueeze(1)
         div_term = torch.exp((torch.arange(0, dim, 2, dtype=torch.float) *
                               -(math.log(10000.0) / dim)))
+        # 选择了pe张量的所有行，以及从第0列开始，每隔一列的列
         pe[:, 0::2] = torch.sin(position.float() * div_term)
         pe[:, 1::2] = torch.cos(position.float() * div_term)
         pe = pe.unsqueeze(1)
@@ -329,14 +345,12 @@ class PositionalEncoding(nn.Module):
 
     def forward(self, emb, step=None):
         """Embed inputs.
-
         Args:
             emb (FloatTensor): Sequence of word vectors
                 ``(seq_len, batch_size, self.dim)``
             step (int or NoneType): If stepwise (``seq_len = 1``), use
                 the encoding for this position.
         """
-
         emb = emb * math.sqrt(self.dim)
         if step is None:
             emb = emb + self.pe[:emb.size(0)]
