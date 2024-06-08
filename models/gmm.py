@@ -1,10 +1,12 @@
 import torch
 
 
-### split final output of our model into Mixture Density Network (MDN) parameters and pen state
+# split final output of our model into Mixture Density Network (MDN) parameters and pen state
 def get_mixture_coef(output):
+    # 用于预测序列数据
+    # coef通常指的是系数或系数矩阵==>指的是模型参数
     z = output
-    z_pen_logits = z[:, 0:3]  # pen state
+    z_pen_logits = z[:, 0:3]  # pen state 用于预测笔的状态（例如，是否在移动）。
 
     # MDN parameters are used to predict the pen moving
     z_pi, z_mu1, z_mu2, z_sigma1, z_sigma2, z_corr = torch.split(z[:, 3:], 20, 1)
@@ -13,6 +15,7 @@ def get_mixture_coef(output):
     z_pi = torch.softmax(z_pi, -1)
 
     # exponentiate the sigmas and also make corr between -1 and 1.
+    # 转换为非负值，并限制在500以内
     z_sigma1 = torch.minimum(torch.exp(z_sigma1), torch.Tensor([500.0]).cuda())
     z_sigma2 = torch.minimum(torch.exp(z_sigma2), torch.Tensor([500.0]).cuda())
     z_corr = torch.tanh(z_corr)
@@ -20,7 +23,7 @@ def get_mixture_coef(output):
     return result
 
 
-### generate the pen moving and state from the predict output
+# generate the pen moving and state from the predict output
 def get_seq_from_gmm(gmm_pred):
     gmm_pred = gmm_pred.reshape(-1, 123)
     [pi, mu1, mu2, sigma1, sigma2, corr, pen_logits] = get_mixture_coef(gmm_pred)

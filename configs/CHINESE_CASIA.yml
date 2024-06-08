@@ -26,7 +26,8 @@ TEST:
   IMG_H: 64
   IMG_W: 64
 DATA_LOADER:
-  NUM_THREADS: 8
+  # NUM_THREADS在linux改成8,window改成0
+  NUM_THREADS: 0
   CONCAT_GRID: True
   TYPE: ScriptDataset
   PATH: data

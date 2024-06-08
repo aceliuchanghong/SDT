@@ -26,6 +26,7 @@ class Trainer:
         self.save_sample_dir = logs['sample']
 
     def _train_iter(self, data, step):
+        # 执行一次训练迭代，包括前向传播、计算损失、反向传播和更新模型参数。
         self.model.train()
         prev_time = time.time()
         # prepare input
@@ -47,7 +48,7 @@ class Trainer:
         preds = preds.view(-1, 123)
         gt_coords = gt_coords.reshape(-1, 5)
         [o_pi, o_mu1, o_mu2, o_sigma1, o_sigma2, o_corr, o_pen_logits] = get_mixture_coef(preds)
-        moving_loss_all, state_loss = self.pen_criterion(o_pi, o_mu1, o_mu2, o_sigma1, o_sigma2, \
+        moving_loss_all, state_loss = self.pen_criterion(o_pi, o_mu1, o_mu2, o_sigma1, o_sigma2,
                                                          o_corr, o_pen_logits, gt_coords[:, 0].unsqueeze(-1),
                                                          gt_coords[:, 1].unsqueeze(-1), gt_coords[:, 2:])
         moving_loss = torch.sum(moving_loss_all) / torch.sum(coords_len)
@@ -75,6 +76,7 @@ class Trainer:
         torch.cuda.empty_cache()
 
     def _valid_iter(self, step):
+        # 执行一次验证迭代，包括前向传播、生成样本并保存。
         self.model.eval()
         print('loading test dataset, the number is', len(self.valid_data_loader))
         try:
@@ -102,6 +104,8 @@ class Trainer:
 
     def train(self):
         """start training iterations"""
+        test = self.data_loader
+        aa = iter(test)
         train_loader_iter = iter(self.data_loader)
         for step in range(cfg.SOLVER.MAX_ITER):
             try:
@@ -133,6 +137,7 @@ class Trainer:
         print('save model to {}'.format(model_path))
 
     def _vis_generate_samples(self, gt_coords, preds, character_id, step):
+        # 生成并保存样本图像
         for i, _ in enumerate(gt_coords):
             gt_img = coords_render(gt_coords[i], split=True, width=64, height=64, thickness=1)
             pred_img = coords_render(preds[i], split=True, width=64, height=64, thickness=1)

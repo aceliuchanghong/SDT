@@ -81,7 +81,7 @@ if __name__ == '__main__':
                         dest='content_pretrained', required=False, help='continue to train content encoder')
     parser.add_argument('--cfg', dest='cfg_file', default='configs/CHINESE_CASIA.yml',
                         help='Config file for training (and optionally testing)')
-    parser.add_argument('--log', default='debug',
+    parser.add_argument('--log', default='Chinese_log',
                         dest='log_name', required=False, help='the filename of log')
     opt = parser.parse_args()
     main(opt)
