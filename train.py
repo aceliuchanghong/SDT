@@ -25,7 +25,7 @@ def main(opt):
     test_dataset = ScriptDataset(
         cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS
     )
-    print('number of training images: ', len(train_dataset), 'number of test images: ', len(test_dataset))
+    print('The number of training images: ', len(train_dataset), '\nThe number of test images: ', len(test_dataset))
     train_loader = torch.utils.data.DataLoader(train_dataset,
                                                batch_size=cfg.TRAIN.IMS_PER_BATCH,
                                                shuffle=True,

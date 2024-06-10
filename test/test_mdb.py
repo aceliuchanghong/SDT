@@ -39,7 +39,7 @@ if __name__ == '__main__':
         data = pickle.loads(txn.get(str(index).encode('utf-8')))
         tag_char, coords, fname = data['tag_char'], data['coordinates'], data['fname']
         print("tag_char: {}\ncoords_shape: {}\nfname: {}".format(tag_char, coords.shape, fname))
-        print("coords:\n",coords)
+        print("coords:\n", coords)
 
     # sd = ScriptDataset(root='../data', dataset='CHINESE_TEST', is_train=False)
     # print(sd.__getitem__(5050))

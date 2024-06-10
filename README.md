@@ -42,7 +42,7 @@ mdb 文件结构eg:
     fname: C004-f.pot
 ```
 
-Func
+需要知道的基本Func
 
 ```text
 view
@@ -170,7 +170,7 @@ python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999
 
 **png转ttf**
 
-```shell
+```
 # see here
 git clone https://github.com/aceliuchanghong/PngToTTF
 ```

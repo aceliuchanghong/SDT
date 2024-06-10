@@ -10,11 +10,12 @@ script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
 
 root = '../data'
 dataset = 'CHINESE'
-num_img = 15
+show_num_img = 8
+pkl_file = 'C031-f.pkl'
 
 if __name__ == '__main__':
     """
-    C031-f.pkl 文件结构
+    pkl 文件结构
     item['img'],item['label']
     """
     data_path = os.path.join(root, script[dataset][0])
@@ -33,7 +34,7 @@ if __name__ == '__main__':
     lmdb = lmdb.open(lmdb_path, max_readers=8, readonly=True, lock=False, readahead=False, meminit=False)
     print(lmdb.begin(write=False).get('num_sample'.encode('utf-8')).decode())
 
-    test_style_samples01 = pickle.load(open(os.path.join(data_path, 'test_style_samples', 'C031-f.pkl'), 'rb'))
+    test_style_samples01 = pickle.load(open(os.path.join(data_path, 'test_style_samples', pkl_file), 'rb'))
     print(len(test_style_samples01))
     i = 0
     for item in test_style_samples01:
@@ -45,5 +46,5 @@ if __name__ == '__main__':
         plt.imshow(item['img'], cmap='gray')
         plt.show()
         i += 1
-        if i > 13:
+        if i > show_num_img:
             break
