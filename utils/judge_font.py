@@ -3,8 +3,8 @@ import pickle
 import gradio as gr
 from PIL import Image
 import numpy as np
-from utils.check_db import excute_sqlite_sql
-from utils.config import create_table_sql, table_select_nums_sql, table_del_url_sql, table_add_sql
+from check_db import excute_sqlite_sql
+from config import create_table_sql, table_select_nums_sql, table_del_url_sql, table_add_sql
 
 path_test = '../data/CASIA_CHINESE/test_style_samples'
 path_train = '../data/CASIA_CHINESE/train_style_samples'
@@ -118,6 +118,9 @@ def create_app():
 
 
 if __name__ == '__main__':
+    """第一台服务器
+    nohup python judge_font.py>0.log &
+    """
     excute_sqlite_sql(create_table_sql)
     app = create_app()
     app.launch(server_name="0.0.0.0", server_port=12345, share=False)
