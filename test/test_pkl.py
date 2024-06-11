@@ -10,7 +10,7 @@ script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
 
 root = '../data'
 dataset = 'CHINESE'
-show_num_img = 8
+show_num_img = 2
 pkl_file = 'C031-f.pkl'
 
 if __name__ == '__main__':
@@ -43,6 +43,7 @@ if __name__ == '__main__':
         cv2.imshow("aa", item['img'])
         cv2.waitKey(0)
         """
+        print(item)
         plt.imshow(item['img'], cmap='gray')
         plt.show()
         i += 1

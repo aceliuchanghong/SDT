@@ -2,13 +2,14 @@ import os
 import pickle
 import matplotlib.pyplot as plt
 import gradio as gr
-
+from PIL import Image
+import numpy as np
 from utils.check_db import excute_sqlite_sql
 from utils.config import create_table_sql, table_select_nums_sql
 
 path_test = '../data/CASIA_CHINESE/test_style_samples'
 path_train = '../data/CASIA_CHINESE/train_style_samples'
-show_num_img = 1
+show_num_img = 2
 
 
 def num2label(nums):
@@ -36,7 +37,7 @@ def get_files(path, suffix):
     for root, dirs, files in os.walk(path):
         for file in files:
             if file.endswith(suffix):
-                files_with_suffix.append(os.path.join(root, file))
+                files_with_suffix.append(os.path.join(root, file).replace("\\", '/'))
     return files_with_suffix
 
 
@@ -47,12 +48,11 @@ def update_file_pkl(file_type):
 
 
 def select_file_txt(pkl_file):
-    file_name = pkl_file.split('\\')[1]
-    print(file_name)
-    pkl_file_type = pkl_file.split('\\')[0].split('/')[-1]
-    print(pkl_file_type)
+    file_name = pkl_file.split('/')[-1]
+    pkl_file_type = pkl_file.split('/')[-2].split('/')[-1]
     pkl_file = pkl_file_type + "/" + file_name
-    ans = excute_sqlite_sql(table_select_nums_sql, (pkl_file,), True)
+
+    ans = excute_sqlite_sql(table_select_nums_sql, (pkl_file,), False)
     print(ans)
     if not ans:
         ans = '0'
@@ -60,11 +60,23 @@ def select_file_txt(pkl_file):
     return ans
 
 
+def select_file_pics(pkl_file):
+    i = 0
+    pics = []
+    samples = pickle.load(open(pkl_file, 'rb'))
+    for item in samples:
+        img_array = item['img'].astype(np.uint8)
+        pil_image = Image.fromarray(img_array, mode='L')
+        pil_image = pil_image.resize((300, 300))
+        pics.append(pil_image)
+        i += 1
+        if i >= show_num_img:
+            break
+    return pics[0], pics[1]
+
+
 def create_app():
     with gr.Blocks(title="pick fonts") as demo:
-        with gr.Row():
-            pic1 = gr.Image(label='文字图片预览1', scale=5)
-            pic2 = gr.Image(label='文字图片预览2', scale=5)
         with gr.Row():
             file_type = gr.Dropdown(label='选择路径', choices=[path_test, path_train],
                                     scale=5, info='pkl file path you choose')
@@ -77,10 +89,16 @@ def create_app():
         with gr.Row():
             write_one = gr.Textbox(label='标记', scale=5, placeholder='0')
             submit_button = gr.Button(value='提交', variant='primary', scale=5)
+        with gr.Row():
+            pic1 = gr.Image(label='文字图片预览1', scale=5, image_mode='L', height=800, width=300)
+            pic2 = gr.Image(label='文字图片预览2', scale=5, image_mode='L', height=800, width=300)
 
         # 添加事件处理器
         file_type.change(fn=update_file_pkl, inputs=file_type, outputs=file_pkl)
         file_pkl.change(fn=select_file_txt, inputs=file_pkl, outputs=ans)
+        file_pkl.change(fn=select_file_pics, inputs=file_pkl, outputs=[pic1, pic2])
+
+        # old_one.click()
     return demo
 
 
