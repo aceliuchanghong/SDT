@@ -55,7 +55,7 @@ def select_file_txt(pkl_file):
     ans = excute_sqlite_sql(table_select_nums_sql, (pkl_file,), False)
     print(ans)
     if not ans:
-        ans = '0'
+        ans = 'xx'
     ans = num2label(ans)
     return ans
 
@@ -73,6 +73,24 @@ def select_file_pics(pkl_file):
         if i >= show_num_img:
             break
     return pics[0], pics[1]
+
+
+def select_file_old(file_type, pkl_file):
+    the_files = get_files(file_type, 'pkl')
+    index = the_files.index(pkl_file)
+    if index > 0:
+        return the_files[index - 1]
+    else:
+        return the_files[-1]
+
+
+def select_file_new(file_type, pkl_file):
+    the_files = get_files(file_type, 'pkl')
+    index = the_files.index(pkl_file)
+    if index < len(the_files) - 1:
+        return the_files[index + 1]
+    else:
+        return the_files[0]
 
 
 def create_app():
@@ -98,7 +116,8 @@ def create_app():
         file_pkl.change(fn=select_file_txt, inputs=file_pkl, outputs=ans)
         file_pkl.change(fn=select_file_pics, inputs=file_pkl, outputs=[pic1, pic2])
 
-        # old_one.click()
+        old_one.click(fn=select_file_old, inputs=[file_type, file_pkl], outputs=file_pkl)
+        next_one.click(fn=select_file_new, inputs=[file_type, file_pkl], outputs=file_pkl)
     return demo
 
 
