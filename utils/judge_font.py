@@ -3,6 +3,9 @@ import pickle
 import matplotlib.pyplot as plt
 import gradio as gr
 
+from utils.check_db import excute_sqlite_sql
+from utils.config import create_table_sql, table_select_nums_sql
+
 path_test = '../data/CASIA_CHINESE/test_style_samples'
 path_train = '../data/CASIA_CHINESE/train_style_samples'
 show_num_img = 1
@@ -43,6 +46,20 @@ def update_file_pkl(file_type):
     return new_down
 
 
+def select_file_txt(pkl_file):
+    file_name = pkl_file.split('\\')[1]
+    print(file_name)
+    pkl_file_type = pkl_file.split('\\')[0].split('/')[-1]
+    print(pkl_file_type)
+    pkl_file = pkl_file_type + "/" + file_name
+    ans = excute_sqlite_sql(table_select_nums_sql, (pkl_file,), True)
+    print(ans)
+    if not ans:
+        ans = '0'
+    ans = num2label(ans)
+    return ans
+
+
 def create_app():
     with gr.Blocks(title="pick fonts") as demo:
         with gr.Row():
@@ -63,6 +80,7 @@ def create_app():
 
         # 添加事件处理器
         file_type.change(fn=update_file_pkl, inputs=file_type, outputs=file_pkl)
+        file_pkl.change(fn=select_file_txt, inputs=file_pkl, outputs=ans)
     return demo
 
 
@@ -79,5 +97,6 @@ if __name__ == '__main__':
     #             break
     #     user_choice = get_user_input()
     #     print(user_choice)
+    excute_sqlite_sql(create_table_sql)
     app = create_app()
     app.launch(server_name="0.0.0.0", server_port=12345, share=False)
