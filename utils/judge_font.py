@@ -1,11 +1,10 @@
 import os
 import pickle
-import matplotlib.pyplot as plt
 import gradio as gr
 from PIL import Image
 import numpy as np
 from utils.check_db import excute_sqlite_sql
-from utils.config import create_table_sql, table_select_nums_sql
+from utils.config import create_table_sql, table_select_nums_sql, table_del_url_sql, table_add_sql
 
 path_test = '../data/CASIA_CHINESE/test_style_samples'
 path_train = '../data/CASIA_CHINESE/train_style_samples'
@@ -21,15 +20,6 @@ def num2label(nums):
         return label[nums]
     else:
         return 'DK'
-
-
-def get_user_input():
-    while True:
-        user_input = input("是否楷书? (1==>是,0==>不是):")
-        if user_input in ['0', '1']:
-            return user_input
-        else:
-            print("输入错误,仅支持0或者1,请重新输入评价。")
 
 
 def get_files(path, suffix):
@@ -48,15 +38,11 @@ def update_file_pkl(file_type):
 
 
 def select_file_txt(pkl_file):
-    file_name = pkl_file.split('/')[-1]
-    pkl_file_type = pkl_file.split('/')[-2].split('/')[-1]
-    pkl_file = pkl_file_type + "/" + file_name
-
     ans = excute_sqlite_sql(table_select_nums_sql, (pkl_file,), False)
-    print(ans)
-    if not ans:
+    # print(ans)
+    if len(ans) == 0:
         ans = 'xx'
-    ans = num2label(ans)
+    ans = num2label(ans[0][0])
     return ans
 
 
@@ -93,6 +79,14 @@ def select_file_new(file_type, pkl_file):
         return the_files[0]
 
 
+def update_file_mark(file_type, mark, pkl_file):
+    next_one = select_file_new(file_type, pkl_file)
+    delIt = excute_sqlite_sql(table_del_url_sql, (pkl_file,), False)
+    insertIt = excute_sqlite_sql(table_add_sql, (pkl_file, mark, 'marked',), False)
+    # print(delIt, insertIt)
+    return '', num2label(mark), next_one
+
+
 def create_app():
     with gr.Blocks(title="pick fonts") as demo:
         with gr.Row():
@@ -105,7 +99,7 @@ def create_app():
             old_one = gr.Button(value='上一个', variant='secondary', scale=5)
             next_one = gr.Button(value='下一个', variant='secondary', scale=5)
         with gr.Row():
-            write_one = gr.Textbox(label='标记', scale=5, placeholder='0')
+            write_one = gr.Textbox(label='标记', scale=5, placeholder='是否楷书? (1==>是,0==>不是)')
             submit_button = gr.Button(value='提交', variant='primary', scale=5)
         with gr.Row():
             pic1 = gr.Image(label='文字图片预览1', scale=5, image_mode='L', height=800, width=300)
@@ -118,22 +112,12 @@ def create_app():
 
         old_one.click(fn=select_file_old, inputs=[file_type, file_pkl], outputs=file_pkl)
         next_one.click(fn=select_file_new, inputs=[file_type, file_pkl], outputs=file_pkl)
+        submit_button.click(fn=update_file_mark, inputs=[file_type, write_one, file_pkl],
+                            outputs=[write_one, ans, file_pkl])
     return demo
 
 
 if __name__ == '__main__':
-    # test_file = get_files(path_test, 'pkl')
-    # for _ in test_file:
-    #     i = 0
-    #     samples = pickle.load(open(_, 'rb'))
-    #     for item in samples:
-    #         plt.imshow(item['img'], cmap='gray')
-    #         plt.show()
-    #         i += 1
-    #         if i >= show_num_img:
-    #             break
-    #     user_choice = get_user_input()
-    #     print(user_choice)
     excute_sqlite_sql(create_table_sql)
     app = create_app()
     app.launch(server_name="0.0.0.0", server_port=12345, share=False)
