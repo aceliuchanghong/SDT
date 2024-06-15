@@ -29,3 +29,6 @@ delete from font_label_info where pkl_path = ?
 table_truncate_sql = """
 DELETE FROM font_label_info
 """
+table_pkl_path_sql = """
+select pkl_path from font_label_info where nums = ?
+"""
