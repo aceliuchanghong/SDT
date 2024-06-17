@@ -107,6 +107,7 @@ class Trainer:
         """start training iterations"""
         # test = self.data_loader
         # aa = iter(test)
+        print("start training iterations:", cfg.SOLVER.MAX_ITER)
         train_loader_iter = iter(self.data_loader)
         for step in range(cfg.SOLVER.MAX_ITER):
             try:

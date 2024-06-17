@@ -48,10 +48,12 @@ def main(opt):
 
 
     # 使用nn.DataParallel model在多个GPU上运行
-    if torch.cuda.device_count() > 1:
+    if torch.cuda.device_count() >= 1:
         print("Let's use ", torch.cuda.device_count(), " GPUs!")
         import torch.nn as nn
         model = nn.DataParallel(model)
+    else:
+        print("no gpu here: ", torch.cuda.device_count())
     # model.content_encoder 改成==> model.module.content_encoder
 
 
