@@ -180,7 +180,8 @@ class SDT_Generator(nn.Module):
         style_embe = self.Feat_Encoder(style_imgs)  # [B*2N, C:512, 2, 2]
 
         anchor_num = num_imgs // 2
-        style_embe = style_embe.view(batch_size * num_imgs, 512, -1).permute(2, 0, 1)  # [4, B*2N, C:512] permute,改变张量的维度顺序
+        style_embe = style_embe.view(batch_size * num_imgs, 512, -1).permute(2, 0,
+                                                                             1)  # [4, B*2N, C:512] permute,改变张量的维度顺序
         FEAT_ST_ENC = self.add_position(style_embe)
 
         memory = self.base_encoder(FEAT_ST_ENC)  # [4, B*2N, C]
@@ -262,9 +263,11 @@ class SDT_Generator(nn.Module):
         memory_writer = self.writer_head(memory)  # [4, B*N, C]
         memory_glyph = self.glyph_head(memory)  # [4, B*N, C]
         memory_writer = rearrange(
-            memory_writer, 't (b n) c ->(t n) b c', b=batch_size)  # [4*N, B, C]
+            memory_writer, 't (b n) c ->(t n) b c', b=batch_size
+        )  # [4*N, B, C]
         memory_glyph = rearrange(
-            memory_glyph, 't (b n) c -> (t n) b c', b=batch_size)  # [4*N, B, C]
+            memory_glyph, 't (b n) c -> (t n) b c', b=batch_size
+        )  # [4*N, B, C]
 
         char_emb = self.content_encoder(char_img)
         char_emb = torch.mean(char_emb, 0)  # [N, 256]
@@ -276,8 +279,11 @@ class SDT_Generator(nn.Module):
             src_tensor[i] = self.add_position(src_tensor[i], step=i)
 
             wri_hs = self.wri_decoder(
-                src_tensor, memory_writer, tgt_mask=tgt_mask)
-            hs = self.gly_decoder(wri_hs[-1], memory_glyph, tgt_mask=tgt_mask)
+                src_tensor, memory_writer, tgt_mask=tgt_mask
+            )
+            hs = self.gly_decoder(
+                wri_hs[-1], memory_glyph, tgt_mask=tgt_mask
+            )
 
             output_hid = hs[-1][i]
             gmm_pred = self.EmbtoSeq(output_hid)
@@ -335,6 +341,10 @@ def generate_square_subsequent_mask(sz: int) -> Tensor:
     Unmasked positions are filled with float(0.0).
     """
     mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
-    mask = mask.float().masked_fill(mask == 0, float(
-        '-inf')).masked_fill(mask == 1, float(0.0))
+    mask = (
+        mask
+        .float()
+        .masked_fill(mask == 0, float('-inf'))
+        .masked_fill(mask == 1, float(0.0))
+        )
     return mask

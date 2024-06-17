@@ -2,6 +2,10 @@ import numpy as np
 import torch
 import random
 from PIL import ImageDraw, Image
+import cv2
+import os
+import pickle
+import matplotlib.pyplot as plt
 
 '''
 description: Normalize the xy-coordinates into a standard interval.
@@ -139,6 +143,26 @@ def writeCache(env, cache):
             txn.put(k, v)
 
 
+def write_pkl(file_path, file_name, imgs_path, show_pic_num=0):
+    img_dic = {}
+    img_list = []
+    index = 0
+    for img_path in imgs_path:
+        lable = os.path.basename(img_path).split('.')[:-1][0]
+        style_img = cv2.imdecode(np.fromfile(img_path, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
+        style_img = cv2.resize(style_img, (64, 64))
+        img_dic['img'] = style_img
+        img_dic['lable'] = lable
+
+        if show_pic_num > index:
+            plt.imshow(img_dic['img'], cmap='gray')
+            plt.show()
+        index += 1
+        img_list.append(img_dic)
+    pickle.dump(img_list, open(os.path.join(file_path, file_name), 'wb'))
+    return img_list
+
+
 '''
 description: convert the np version of coordinates to the list counterpart
 将一个包含坐标信息的 NumPy 数组分割成多个笔画，并将每个笔画的坐标序列存储在一个列表中，同时计算并返回一个长度值
@@ -192,3 +216,10 @@ def corrds2xys(coordinates):
             return None
     new_strokes = np.stack(new_strokes, axis=0)
     return new_strokes
+
+
+if __name__ == '__main__':
+    file_path = '.'
+    file_name = 'test.pkl'
+    imgs_path = ['../style_samples/1_binary.jpg', '../style_samples/2_binary.jpg', '../style_samples/3_binary.jpg']
+    write_pkl(file_path, file_name, imgs_path, 2)

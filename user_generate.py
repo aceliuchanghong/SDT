@@ -16,7 +16,8 @@ def main(opt):
 
     """setup data_loader instances"""
     test_dataset = UserDataset(
-        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, opt.style_path)
+        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, opt.style_path
+    )
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=cfg.TRAIN.IMS_PER_BATCH,
                                               shuffle=True,
@@ -52,7 +53,7 @@ def main(opt):
             preds = model.inference(img_list, char_img, 120)
             bs = char_img.shape[0]
             SOS = torch.tensor(bs * [[0, 0, 1, 0, 0]]).unsqueeze(1).to(preds)
-            preds = torch.cat((SOS, preds), 1)  # add the SOS token like GT
+            preds = torch.cat((SOS, preds), 1)  # add the SOS token like GT(真实标签（Ground Truth)
             preds = preds.detach().cpu().numpy()
 
             for i, pred in enumerate(preds):
