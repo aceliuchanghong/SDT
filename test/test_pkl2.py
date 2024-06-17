@@ -16,5 +16,5 @@ def read_pkl(file_path, show_pic_num=0):
 
 
 if __name__ == '__main__':
-    file_path = '../utils/test.pkl'
+    file_path = './test.pkl'
     read_pkl(file_path)
