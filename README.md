@@ -134,22 +134,16 @@ python train.py --cfg configs/English_CASIA.yml --log English_log
 
 **定性测试**
 
-- 生成中文笔迹:
+- 生成笔迹:
+
+```
+python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type online --sample_size 500 --dir Generated/Chinese
+```
+
+- 生成图片:
 
 ```
 python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type img --sample_size 500 --dir Generated/Chinese
-```
-
-- 生成日语笔迹:
-
-```
-python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type img --sample_size 500 --dir Generated/Japanese
-```
-
-- 生成英文笔迹:
-
-```
-python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type img --sample_size 500 --dir Generated/English
 ```
 
 **定量评估**

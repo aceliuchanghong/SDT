@@ -99,6 +99,8 @@ def coords_render(coordinates, split, width, height, thickness, board=5):
         xys[1::2] = (xys[1::2] - min_y) / original_size * p_canvas_h + board_h
         xys = np.round(xys)
         draw.line(xys.tolist(), fill=0, width=thickness)
+    # canvas 返回的是一个 PIL（Pillow）图像对象。这个图像对象是一个灰度图像，大小为 (width, height)，
+    # 其中包含了根据输入坐标点绘制的线条。图像的背景色为白色（255），线条颜色为黑色（0），线条的宽度由 thickness 参数决定。
     return canvas
 
 
@@ -139,6 +141,7 @@ def writeCache(env, cache):
 
 '''
 description: convert the np version of coordinates to the list counterpart
+将一个包含坐标信息的 NumPy 数组分割成多个笔画，并将每个笔画的坐标序列存储在一个列表中，同时计算并返回一个长度值
 '''
 
 
@@ -158,6 +161,7 @@ def dxdynp_to_list(coordinates):
         xys_split = np.split(remove_end, ids, axis=0)[:-1]  # split from the remove_end
 
     coord_list = []
+    # 笔画（stroke）
     for stroke in xys_split:
         xs, ys = stroke[:, 0], stroke[:, 1]
         if len(xs) > 0:

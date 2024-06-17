@@ -42,6 +42,7 @@ transform_data = transforms.Compose([
 script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
           'JAPANESE': ['TUATHANDS_JAPANESE', 'Japanese_content.pkl'],
           "ENGLISH": ['CASIA_ENGLISH', 'English_content.pkl'],
+          # lch add
           "CHINESE_TEST": ['CASIA_CHINESE_TEST', 'Chinese_content.pkl'],
           }
 

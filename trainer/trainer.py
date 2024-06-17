@@ -94,7 +94,8 @@ class Trainer:
             test_data['char_img'].cuda()
         # forward
         with torch.no_grad():
-            preds = self.model.inference(img_list, char_img, 120)
+            preds = self.model.module.inference(img_list, char_img, 120)
+            # preds = self.model.inference(img_list, char_img, 120)
             bs = character_id.shape[0]
             SOS = torch.tensor(bs * [[0, 0, 1, 0, 0]]).unsqueeze(1).to(preds)
             preds = torch.cat((SOS, preds), 1)  # add the first token
@@ -123,17 +124,22 @@ class Trainer:
                 if (step + 1) > cfg.TRAIN.VALIDATE_BEGIN and (step + 1) % cfg.TRAIN.VALIDATE_ITERS == 0:
                     self._valid_iter(step)
             else:
-                pass
+                print('self.valid_data_loader:', self.valid_data_loader, ' is None')
 
     def _progress(self, step, loss, time_left):
         terminal_log = 'iter:%d ' % step
         terminal_log += '%s:%.3f ' % ('loss', loss)
+        # ETA "Estimated Time of Arrival" “预计到达时间”
         terminal_log += 'ETA:%s\r\n' % str(time_left)
         sys.stdout.write(terminal_log)
 
     def _save_checkpoint(self, step):
         model_path = '{}/checkpoint-iter{}.pth'.format(self.save_model_dir, step)
-        torch.save(self.model.state_dict(), model_path)
+        '''
+        使用单机多卡训练的模型权重保存方式
+        '''
+        torch.save(self.model.module.state_dict(), model_path)
+        # torch.save(self.model.state_dict(), model_path)
         print('save model to {}'.format(model_path))
 
     def _vis_generate_samples(self, gt_coords, preds, character_id, step):

@@ -18,7 +18,9 @@ def main(opt):
 
     """setup data_loader instances"""
     test_dataset = ScriptDataset(
-        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS)
+        # data CHINESE False 15
+        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TEST.ISTRAIN, cfg.MODEL.NUM_IMGS
+    )
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=cfg.TRAIN.IMS_PER_BATCH,
                                               shuffle=True,
@@ -74,8 +76,12 @@ def main(opt):
                     data['char_img'].cuda()
                 preds = model.inference(img_list, char_img, 120)
                 bs = character_id.shape[0]
+                # Start of Sequence, SOS
+                # 目的是在每个预测序列的开头添加一个 SOS 符号，以便在序列生成任务中标记序列的开始
                 SOS = torch.tensor(bs * [[0, 0, 1, 0, 0]]).unsqueeze(1).to(preds)
                 preds = torch.cat((SOS, preds), 1)  # add the SOS token like GT
+                # preds.detach()：从当前计算图中分离 preds 张量。这意味着 preds 将不再参与梯度计算，即不会在反向传播中更新其参数。
+                # 将 preds 张量从 GPU 转移到 CPU。如果代码之前在 GPU 上运行，这一步是必要的，因为 NumPy 只能在 CPU 上操作。
                 preds = preds.detach().cpu().numpy()
 
                 test_cache = {}

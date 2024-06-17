@@ -12,7 +12,7 @@ script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
 root = '../data'
 dataset = 'CHINESE'
 num_img = 15
-index = 1000
+index = 10001
 max_len = 150
 if __name__ == '__main__':
     data_path = os.path.join(root, script[dataset][0])
@@ -24,17 +24,6 @@ if __name__ == '__main__':
         num_sample = int(txn.get('num_sample'.encode('utf-8')).decode())
 
         indexes = list(range(0, num_sample))
-        # print("01:", indexes)
-
-        # indexes2 = []
-        # for i in range(num_sample):
-        #     data_id = str(i).encode('utf-8')
-        #     data_byte = txn.get(data_id)
-        #     coords = pickle.loads(data_byte)['coordinates']
-        #     if len(coords) < max_len:
-        #         indexes2.append(i)
-        # print("02:", indexes2)
-
         index = indexes[index]
         data = pickle.loads(txn.get(str(index).encode('utf-8')))
         tag_char, coords, fname = data['tag_char'], data['coordinates'], data['fname']

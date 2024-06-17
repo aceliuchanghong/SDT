@@ -46,21 +46,22 @@ def main(opt):
                           wri_dec_layers=cfg.MODEL.WRI_DEC_LAYERS,
                           gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS)
 
-    """
+
     # 使用nn.DataParallel model在多个GPU上运行
     if torch.cuda.device_count() > 1:
         print("Let's use ", torch.cuda.device_count(), " GPUs!")
         import torch.nn as nn
         model = nn.DataParallel(model)
-    """
+    # model.content_encoder 改成==> model.module.content_encoder
+
 
     model.to('cuda')
     if len(opt.pretrained_model) > 0:
         model.load_state_dict(torch.load(opt.pretrained_model))
         print('load pretrained model from {}'.format(opt.pretrained_model))
     elif len(opt.content_pretrained) > 0:
-        model_dict = load_specific_dict(model.content_encoder, opt.content_pretrained, "feature_ext")
-        model.content_encoder.load_state_dict(model_dict)
+        model_dict = load_specific_dict(model.module.content_encoder, opt.content_pretrained, "feature_ext")
+        model.module.content_encoder.load_state_dict(model_dict)
         print('load content pretrained model from {}'.format(opt.content_pretrained))
     else:
         pass
