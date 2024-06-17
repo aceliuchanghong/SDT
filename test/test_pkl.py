@@ -10,7 +10,7 @@ script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
 
 root = '../data'
 dataset = 'CHINESE'
-show_num_img = 2
+show_num_img = 1
 pkl_file = 'C031-f.pkl'
 
 if __name__ == '__main__':
@@ -47,5 +47,5 @@ if __name__ == '__main__':
         plt.imshow(item['img'], cmap='gray')
         plt.show()
         i += 1
-        if i > show_num_img:
+        if i >= show_num_img:
             break
