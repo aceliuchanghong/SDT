@@ -3,13 +3,18 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 from utils.judge_font import get_files
+import os
 
 # 设置基础目录，文件后缀名，保存路径，集数量和展示图片数量
 base_dir = '../style_samples'
 suffix = ".jpg"
-save_pics_path = 'suit_pics'
+save_pics_path = 'suit_pics2'
 set_nums = 10
 show_pics_num = 2
+
+# 确保保存图片的目录存在
+if not os.path.exists(save_pics_path):
+    os.makedirs(save_pics_path)
 
 
 def resize_thin_character(pics):
@@ -57,6 +62,9 @@ def resize_thin_character(pics):
         if show_pics_num > index:
             plt.imshow(skel, cmap='gray')
             plt.show()
+        # 保存处理后的图片
+        save_path = os.path.join(save_pics_path, f'skel_{index}.jpg')
+        cv2.imwrite(save_path, skel)
         index += 1
 
 
