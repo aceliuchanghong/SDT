@@ -19,3 +19,4 @@ for batch in range(batch_samples):
     print('batch:', batch)
     data = next(data_iter)
     print(data)
+    break

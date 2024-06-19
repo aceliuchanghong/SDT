@@ -2,8 +2,6 @@ import os
 import lmdb
 import pickle
 
-from data_loader.loader import ScriptDataset
-
 script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
           'JAPANESE': ['TUATHANDS_JAPANESE', 'Japanese_content.pkl'],
           "ENGLISH": ['CASIA_ENGLISH', 'English_content.pkl']
@@ -18,17 +16,20 @@ if __name__ == '__main__':
     data_path = os.path.join(root, script[dataset][0])
     lmdb_path = os.path.join(data_path, 'test')
     print(lmdb_path)
+    """
+    max_readers=8: 允许最多8个读取器并发访问数据库。
+    readonly=True: 以只读方式打开数据库。
+    lock=False: 不使用文件锁，这样可以在多个进程中只读访问数据库。
+    readahead=False: 关闭预读取功能，以降低对内存的占用。
+    meminit=False: 不预先初始化内存。
+    LMDB 数据库是由一个环境(environment)和多个事务(transactions)组成的，环境包括数据文件和锁文件。
+    从 data.mdb 文件中读取数据，而 lock.mdb 文件是用来进行事务处理的文件锁。当设置 lock=False 时，锁文件不会被使用
+    """
     lmdb = lmdb.open(lmdb_path, max_readers=8, readonly=True, lock=False, readahead=False, meminit=False)
     print(lmdb.begin(write=False).get('num_sample'.encode('utf-8')).decode())
     with lmdb.begin(write=False) as txn:
         num_sample = int(txn.get('num_sample'.encode('utf-8')).decode())
-
-        indexes = list(range(0, num_sample))
-        index = indexes[index]
         data = pickle.loads(txn.get(str(index).encode('utf-8')))
         tag_char, coords, fname = data['tag_char'], data['coordinates'], data['fname']
         print("tag_char: {}\ncoords_shape: {}\nfname: {}".format(tag_char, coords.shape, fname))
         print("coords:\n", coords)
-
-    # sd = ScriptDataset(root='../data', dataset='CHINESE_TEST', is_train=False)
-    # print(sd.__getitem__(5050))

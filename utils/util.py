@@ -144,10 +144,10 @@ def writeCache(env, cache):
 
 
 def write_pkl(file_path, file_name, imgs_path, show_pic_num=0):
-    img_dic = {}
     img_list = []
     index = 0
     for img_path in imgs_path:
+        img_dic = {}
         lable = os.path.basename(img_path).split('.')[:-1][0]
         style_img = cv2.imdecode(np.fromfile(img_path, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
         style_img = cv2.resize(style_img, (64, 64))

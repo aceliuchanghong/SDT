@@ -31,6 +31,11 @@ multi-layer transformer decoder:
 论文数据集
 
 ```text
+
+tarin:CASIA-OLHWDB (https://nlpr.ia.ac.cn/databases/handwriting/Home.html)
+
+test:ICDAR-2013
+
 pkl 文件结构:
     item['img'] ==>样子 (64, 64)
     item['label'] ==>文字
@@ -169,25 +174,6 @@ python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999
 git clone https://github.com/aceliuchanghong/PngToTTF
 ```
 
-1. mdb文件生成
-
-```text
-data = {'coordinates': pred, 'writer_id': writer_id[i].item(),
-  'character_id': character_id[i].item(), 'coords_gt': coord}
-data_byte = pickle.dumps(data)
-data_id = str(num_count).encode('utf-8')
-test_cache[data_id] = data_byte
-writeCache
-```
-
-2. img转pkl
-
-```text
-3. file_path = '.'
-file_name = 'test.pkl'
-imgs_path = ['../style_samples/1_binary.jpg', '../style_samples/2_binary.jpg', '../style_samples/3_binary.jpg']
-write_pkl(file_path, file_name, imgs_path, 2)
-```
 
 ### ValueIssue
 

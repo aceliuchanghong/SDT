@@ -93,6 +93,7 @@ def main(opt):
 if __name__ == '__main__':
     """Parse input arguments
     python cut_pics.py --input 'from/DCIM.jpg' --rect_size 8 --ignore_min_size 80 --ignore_max_size 150 --offset_param 48
+    python cut_pics.py --input 'from/from.jpg' --rect_size 8 --ignore_min_size 80 --ignore_max_size 150 --offset_param 3
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', dest='input_path', default='from/from4.jpg',

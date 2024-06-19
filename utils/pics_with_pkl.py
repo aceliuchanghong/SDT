@@ -5,11 +5,8 @@ from utils.config import table_pkl_path_sql
 import pickle
 from PIL import Image
 import numpy as np
-
-base_dir = '../data/CASIA_CHINESE'
-save_suffix = ".png"
-save_pics_path = 'suit_pics'
-set_nums = 10
+from utils.judge_font import get_files
+from utils.util import write_pkl
 
 
 def save_pics_from_pkl(pkl_path, save_pics_path_dir, chinese_name=True):
@@ -41,7 +38,14 @@ def get_pkl_path_list():
 
 
 if __name__ == '__main__':
-    pkl_path = get_pkl_path_list()
+    """save pics from pkl"""
+    # base_dir = '../data/CASIA_CHINESE'
+    base_dir = './'
+    save_suffix = ".png"
+    save_pics_path = 'suit_pics'
+    set_nums = 10
+    # pkl_path = get_pkl_path_list()
+    pkl_path = ['test.pkl']
     index = 0
     set_num = set_nums if len(pkl_path) > set_nums else len(pkl_path)
     for i in tqdm(pkl_path, desc="Processing", total=set_num):
@@ -49,3 +53,12 @@ if __name__ == '__main__':
         if index >= set_num - 1:
             break
         index += 1
+
+    """
+    save pkl from pics
+    """
+    # save_pkl_file_path = '.'
+    # save_pkl_file_name = 'test.pkl'
+    # pics_path = 'suit_pics2'
+    # imgs_path = get_files(pics_path, '.jpg')
+    # write_pkl(save_pkl_file_path, save_pkl_file_name, imgs_path, 2)
