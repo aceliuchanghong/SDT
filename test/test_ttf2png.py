@@ -2,7 +2,6 @@
 import os
 import fontforge
 import json
-import re
 import concurrent.futures
 
 
@@ -47,6 +46,9 @@ def convert_ttf_to_png(json_path, font_paths, output_dir, sample_count=6):
 
 
 if __name__ == '__main__':
+    """
+    ffpython D:\aProject\py\SDT\test\test_ttf2png.py
+    """
     json_path = r'D:\aProject\py\SDT\test\txt9169.json'
     root_dir = r'D:\aProject\py\SDT\test\font_dir'
     output_dir = './LYJ300-1223'
