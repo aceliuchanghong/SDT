@@ -5,17 +5,6 @@ from tqdm import tqdm
 from utils.judge_font import get_files
 import os
 
-# 设置基础目录，文件后缀名，保存路径，集数量和展示图片数量
-base_dir = '../style_samples'
-suffix = ".jpg"
-save_pics_path = 'suit_pics2'
-set_nums = 10
-show_pics_num = 2
-
-# 确保保存图片的目录存在
-if not os.path.exists(save_pics_path):
-    os.makedirs(save_pics_path)
-
 
 def resize_thin_character(pics):
     """
@@ -69,6 +58,17 @@ def resize_thin_character(pics):
 
 
 if __name__ == '__main__':
+    # 设置基础目录，文件后缀名，保存路径，集数量和展示图片数量
+    base_dir = '../style_samples'
+    suffix = ".jpg"
+    save_pics_path = 'suit_pics2'
+    set_nums = 10
+    show_pics_num = 2
+
+    # 确保保存图片的目录存在
+    if not os.path.exists(save_pics_path):
+        os.makedirs(save_pics_path)
+
     # 获取文件列表
     files_list = get_files(base_dir, suffix)
     # 调用函数处理图片
