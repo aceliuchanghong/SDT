@@ -6,7 +6,7 @@ from utils.judge_font import get_files
 import os
 
 
-def resize_thin_character(pics, suffix='png', save_chinese_name=False):
+def resize_thin_character(pics, save_pics_path, show_pics_num, suffix='png', save_chinese_name=False):
     """
     将输入图片进行处理，提取出字符骨架并显示部分结果。
 
@@ -67,7 +67,6 @@ if __name__ == '__main__':
     base_dir = '../style_samples'
     get_suffix = ".png"
     save_pics_path = 'suit_pics2'
-    set_nums = 10
     show_pics_num = 2
 
     # 确保保存图片的目录存在
@@ -77,4 +76,4 @@ if __name__ == '__main__':
     # 获取文件列表
     files_list = get_files(base_dir, get_suffix)
     # 调用函数处理图片
-    resize_thin_character(files_list, save_chinese_name=False)
+    resize_thin_character(files_list, save_pics_path, show_pics_num, save_chinese_name=False)
