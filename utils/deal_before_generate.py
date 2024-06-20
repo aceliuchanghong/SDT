@@ -6,7 +6,7 @@ from utils.judge_font import get_files
 import os
 
 
-def resize_thin_character(pics):
+def resize_thin_character(pics, suffix='png', save_chinese_name=False):
     """
     将输入图片进行处理，提取出字符骨架并显示部分结果。
 
@@ -16,6 +16,7 @@ def resize_thin_character(pics):
     length = len(pics)
     index = 0
     for pic in tqdm(pics, total=length):  # 使用tqdm显示处理进度
+        pic_chinese_name_maybe = os.path.basename(pic).split('.')[0]
         # 读取图片为灰度图
         style_img = cv2.imdecode(np.fromfile(pic, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
         # 调整图片大小为64x64
@@ -52,15 +53,19 @@ def resize_thin_character(pics):
             plt.imshow(skel, cmap='gray')
             plt.show()
         # 保存处理后的图片
-        save_path = os.path.join(save_pics_path, f'skel_{index}.jpg')
-        cv2.imwrite(save_path, skel)
+        if save_chinese_name:
+            save_path = save_pics_path + "/" + pic_chinese_name_maybe + '.' + suffix
+        else:
+            save_path = os.path.join(save_pics_path, f'skel_{index}.{suffix}')
+        # print(save_path)
+        cv2.imencode(f'.{suffix}', skel)[1].tofile(save_path)
         index += 1
 
 
 if __name__ == '__main__':
     # 设置基础目录，文件后缀名，保存路径，集数量和展示图片数量
     base_dir = '../style_samples'
-    suffix = ".jpg"
+    get_suffix = ".png"
     save_pics_path = 'suit_pics2'
     set_nums = 10
     show_pics_num = 2
@@ -70,6 +75,6 @@ if __name__ == '__main__':
         os.makedirs(save_pics_path)
 
     # 获取文件列表
-    files_list = get_files(base_dir, suffix)
+    files_list = get_files(base_dir, get_suffix)
     # 调用函数处理图片
-    resize_thin_character(files_list)
+    resize_thin_character(files_list, save_chinese_name=False)
