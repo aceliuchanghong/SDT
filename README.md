@@ -75,44 +75,54 @@ watch -n 1 nvidia-smi
 ### 📂 Folder Structure
 
 ```
-    SDT/
-    |
-    ├── README.md
-    ├── evaluate.py
-    ├── parse_config.py
-    ├── requirements.txt
-    ├── test.py
-    ├── train.py
-    ├── user_generate.py
-    ├── checkpoint_path/
-    ├── configs/
-    │   ├── CHINESE_CASIA.yml
-    │   ├── CHINESE_USER.yml
-    │   ├── English_CASIA.yml
-    │   └── Japanese_TUATHANDS.yml
-    ├── data_loader/
-    │   └── loader.py
-    ├── model_zoo/
-    ├── models/
-    │   ├── encoder.py
-    │   ├── gmm.py
-    │   ├── loss.py
-    │   ├── model.py
-    │   └── transformer.py
-    ├── saved/
-    │   ├── models/
-    │   ├── samples/
-    │   └── tborad/
-    ├── style_samples/
-    ├── trainer/
-    │   └── trainer.py
-    └── utils/
-        ├── cut_pics.py
-        ├── logger.py
-        ├── pic_bin.py
-        ├── remove_comments.py
-        ├── structure.py
-        └── util.py
+SDT/
+|
+├── README.md
+├── evaluate.py
+├── parse_config.py
+├── requirements.txt
+├── sdt.pdf
+├── test.py
+├── train.py
+├── user_generate.py
+├── Saved/
+│   ├── models/
+│   ├── samples/
+│   └── tborad/
+├── checkpoint_path/
+├── configs/
+│   ├── CHINESE_CASIA.yml
+│   ├── CHINESE_USER.yml
+│   ├── English_CASIA.yml
+│   └── Japanese_TUATHANDS.yml
+├── data_loader/
+│   └── loader.py
+├── model_zoo/
+├── models/
+│   ├── encoder.py
+│   ├── gmm.py
+│   ├── loss.py
+│   ├── model.py
+│   └── transformer.py
+├── style_samples/
+├── trainer/
+│   └── trainer.py
+└── utils/
+    ├── change_mdb.py
+    ├── check_db.py
+    ├── config.py
+    ├── create_test_and_train_pkl.py
+    ├── cut_pics.py
+    ├── deal_before_generate.py
+    ├── font_labels.db
+    ├── judge_font.py
+    ├── logger.py
+    ├── pic_bin.py
+    ├── pics_with_pkl.py
+    ├── remove_comments.py
+    ├── structure.py
+    ├── test.pkl
+    └── util.py
 ```
 
 ### 🚀 Training & Test
@@ -174,13 +184,20 @@ python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999
 git clone https://github.com/aceliuchanghong/PngToTTF
 ```
 
+### Add
 
-### ValueIssue
+- pkl文件解析&生成
+- 字体转图片
+- 图片转字体
+- 多gpu训练
+- 项目结构目录修改,配置文件完善
+- mdb文件解析
+- 各个文件注释添加以及规范
+- 标注楷书草书
+- 增加论文翻译
+- 增加各种辅助函数
+- 输入图片标准化
 
-* [商用AI字体](https://www.ai.zitijia.com/)
-* [输出字体狂草风格](https://github.com/dailenson/SDT/issues/59#issuecomment-1963197514)
-* [不狂草](https://github.com/dailenson/SDT/issues/75#issuecomment-2031897517)
-* [查看生成结果](https://github.com/dailenson/SDT/issues/74)
-* [打包字体](https://hackmd.io/@h93YMTP_SrK5XODkOdtuKg/Sk20ATBMp)
-* [打包字体2](https://github.com/dailenson/SDT/issues/63)
+### TODO
 
+- 额外的装饰网络，为SDT生成的均匀笔画的文字增加了笔画宽度和颜色
