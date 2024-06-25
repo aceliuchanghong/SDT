@@ -59,7 +59,7 @@ def main(opt):
 
     model.to('cuda')
     if len(opt.pretrained_model) > 0:
-        model.load_state_dict(torch.load(opt.pretrained_model))
+        model.module.load_state_dict(torch.load(opt.pretrained_model))
         print('load pretrained model from {}'.format(opt.pretrained_model))
     elif len(opt.content_pretrained) > 0:
         model_dict = load_specific_dict(model.module.content_encoder, opt.content_pretrained, "feature_ext")

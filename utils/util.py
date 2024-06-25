@@ -148,11 +148,11 @@ def write_pkl(file_path, file_name, imgs_path, show_pic_num=0):
     index = 0
     for img_path in imgs_path:
         img_dic = {}
-        lable = os.path.basename(img_path).split('.')[:-1][0]
+        label = os.path.basename(img_path).split('.')[:-1][0]
         style_img = cv2.imdecode(np.fromfile(img_path, dtype=np.uint8), cv2.IMREAD_GRAYSCALE)
         style_img = cv2.resize(style_img, (64, 64))
         img_dic['img'] = style_img
-        img_dic['lable'] = lable
+        img_dic['label'] = label
 
         if show_pic_num > index:
             plt.imshow(img_dic['img'], cmap='gray')

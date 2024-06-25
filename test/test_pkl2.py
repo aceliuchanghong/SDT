@@ -7,14 +7,14 @@ def read_pkl(file_path, show_pic_num=0):
     print("total pics:", len(test_style_samples01))
     i = 0
     for item in test_style_samples01:
-        # print(item)
         plt.imshow(item['img'], cmap='gray')
         plt.show()
         i += 1
         if i >= show_pic_num:
+            print(item)
             break
 
 
 if __name__ == '__main__':
-    file_path = '../utils/test.pkl'
-    read_pkl(file_path, 2)
+    file_path = r'D:\aProject\py\SDT\utils\suit_pics3\001.pkl'
+    read_pkl(file_path, 1)
