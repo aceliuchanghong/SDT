@@ -64,9 +64,9 @@ def resize_thin_character(pics, save_pics_path, show_pics_num, suffix='png', sav
 
 if __name__ == '__main__':
     # 设置基础目录，文件后缀名，保存路径，集数量和展示图片数量
-    base_dir = '../style_samples'
-    get_suffix = ".png"
-    save_pics_path = 'suit_pics2'
+    base_dir = 'font/result/'
+    get_suffix = ".jpg"
+    save_pics_path = '../style_samples'
     show_pics_num = 2
 
     # 确保保存图片的目录存在
