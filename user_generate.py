@@ -31,10 +31,21 @@ def main(opt):
     model = SDT_Generator(num_encoder_layers=cfg.MODEL.ENCODER_LAYERS,
                           num_head_layers=cfg.MODEL.NUM_HEAD_LAYERS,
                           wri_dec_layers=cfg.MODEL.WRI_DEC_LAYERS,
-                          gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS).to('cuda')
+                          gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS)
+
+    # 使用nn.DataParallel model在多个GPU上运行
+    if torch.cuda.device_count() >= 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        import torch.nn as nn
+        model = nn.DataParallel(model)
+    else:
+        print("no gpu here: ", torch.cuda.device_count())
+
+    model.to('cuda')
+
     if len(opt.pretrained_model) > 0:
         model_weight = torch.load(opt.pretrained_model)
-        model.load_state_dict(model_weight)
+        model.module.load_state_dict(model_weight)
         print('load pretrained model from {}'.format(opt.pretrained_model))
     else:
         raise IOError('input the correct checkpoint path')
@@ -45,12 +56,11 @@ def main(opt):
     data_iter = iter(test_loader)
     with torch.no_grad():
         for _ in tqdm.tqdm(range(batch_samples)):
-
             data = next(data_iter)
             # prepare input
             img_list, char_img, char = data['img_list'].cuda(), \
                 data['char_img'].cuda(), data['char']
-            preds = model.inference(img_list, char_img, 120)
+            preds = model.module.inference(img_list, char_img, 120)
             bs = char_img.shape[0]
             SOS = torch.tensor(bs * [[0, 0, 1, 0, 0]]).unsqueeze(1).to(preds)
             preds = torch.cat((SOS, preds), 1)  # add the SOS token like GT(真实标签（Ground Truth)
