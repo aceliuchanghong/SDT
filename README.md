@@ -206,6 +206,7 @@ SDT/
 首先获取pkl文件==>ttf转png(test/test_ttf2png.py实现)==>png转pkl(utils/create_test_and_train_pkl.py实现)
 然后修改生成自己的mdb文件==>(utils/change_mdb.py实现)
 并且原作者提供的test与train下面的mdb是不一样的,需要注意
+ps:我在v100-32G * 4张卡,训练20000轮 一个36个pkl,花费2h30mins
 ```
 
 ### TODO
