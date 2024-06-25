@@ -10,11 +10,12 @@ script = {"CHINESE": ['CASIA_CHINESE', 'Chinese_content.pkl'],
 root = '../data'
 dataset = 'CHINESE'
 num_img = 15
-index = 10001
+index = 10
 max_len = 150
 if __name__ == '__main__':
     data_path = os.path.join(root, script[dataset][0])
-    lmdb_path = os.path.join(data_path, 'test')
+    # lmdb_path = os.path.join(data_path, 'test')
+    lmdb_path = r'D:\aProject\py\SDT\utils\suit_pics3'
     print(lmdb_path)
     """
     max_readers=8: 允许最多8个读取器并发访问数据库。
@@ -29,7 +30,8 @@ if __name__ == '__main__':
     print(lmdb.begin(write=False).get('num_sample'.encode('utf-8')).decode())
     with lmdb.begin(write=False) as txn:
         num_sample = int(txn.get('num_sample'.encode('utf-8')).decode())
-        data = pickle.loads(txn.get(str(index).encode('utf-8')))
-        tag_char, coords, fname = data['tag_char'], data['coordinates'], data['fname']
-        print("tag_char: {}\ncoords_shape: {}\nfname: {}".format(tag_char, coords.shape, fname))
-        print("coords:\n", coords)
+        for i in range(index):
+            data = pickle.loads(txn.get(str(i).encode('utf-8')))
+            tag_char, coords, fname = data['tag_char'], data['coordinates'], data['fname']
+            print(str(i) + ":tag_char: {}\ncoords_shape: {}\nfname: {}".format(tag_char, coords.shape, fname))
+            # print("coords:\n", coords)

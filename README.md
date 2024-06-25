@@ -72,6 +72,67 @@ pip install -r requirements.txt --proxy=127.0.0.1:10809
 watch -n 1 nvidia-smi
 ```
 
+### 🚀 Training & Test
+
+**模型训练**
+
+- 在中文数据集上训练 SDT:
+
+```
+python train.py --cfg configs/CHINESE_CASIA.yml --log Chinese_log
+# 修改一下config
+python train.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --cfg configs/CHINESE_CASIA.yml --log Chinese_log
+```
+
+- 在日语数据集上训练 SDT:
+
+```
+python train.py --cfg configs/Japanese_TUATHANDS.yml --log Japanese_log
+```
+
+- 在英语数据集上训练 SDT:
+
+```
+python train.py --cfg configs/English_CASIA.yml --log English_log
+```
+
+**定性测试**
+
+- 生成笔迹:
+
+```
+python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type online --sample_size 500 --dir Generated/Chinese
+```
+
+- 生成图片:
+
+```
+python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type img --sample_size 500 --dir Generated/Chinese
+```
+
+**定量评估**
+
+- 评估生成的笔迹，需要设置为 data_path 生成的笔迹的路径:
+
+```
+python evaluate.py --data_path Generated/Chinese
+```
+
+**自己字体**
+
+- 把图片放到文件夹style_samples
+
+```
+python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --style_path style_samples
+```
+
+**png转ttf**
+
+```
+# see here
+git clone https://github.com/aceliuchanghong/PngToTTF
+```
+
 ### 📂 Folder Structure
 
 ```
@@ -125,65 +186,6 @@ SDT/
     └── util.py
 ```
 
-### 🚀 Training & Test
-
-**模型训练**
-
-- 在中文数据集上训练 SDT:
-
-```
-python train.py --cfg configs/CHINESE_CASIA.yml --log Chinese_log
-```
-
-- 在日语数据集上训练 SDT:
-
-```
-python train.py --cfg configs/Japanese_TUATHANDS.yml --log Japanese_log
-```
-
-- 在英语数据集上训练 SDT:
-
-```
-python train.py --cfg configs/English_CASIA.yml --log English_log
-```
-
-**定性测试**
-
-- 生成笔迹:
-
-```
-python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type online --sample_size 500 --dir Generated/Chinese
-```
-
-- 生成图片:
-
-```
-python test.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --store_type img --sample_size 500 --dir Generated/Chinese
-```
-
-**定量评估**
-
-- 评估生成的笔迹，需要设置为 data_path 生成的笔迹的路径:
-
-```
-python evaluate.py --data_path Generated/Chinese
-```
-
-**自己字体**
-
-- 把图片放到文件夹style_samples
-
-```
-python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --style_path style_samples
-```
-
-**png转ttf**
-
-```
-# see here
-git clone https://github.com/aceliuchanghong/PngToTTF
-```
-
 ### Add
 
 - pkl文件解析&生成
@@ -197,6 +199,7 @@ git clone https://github.com/aceliuchanghong/PngToTTF
 - 增加论文翻译
 - 增加各种辅助函数
 - 输入图片标准化
+- mdb生成
 
 ### TODO
 
