@@ -37,6 +37,11 @@ class Trainer:
             data['img_list'].cuda(), \
             data['char_img'].cuda()
 
+        # 打印模型权重变化
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                print(f"Step {step}, Parameter {name} - Mean: {param.data.mean()}, Std: {param.data.std()}")
+
         # forward
         input_seq = coords[:, 1:-1]
         preds, nce_emb, nce_emb_patch = self.model(img_list, input_seq, char_img)
@@ -58,6 +63,12 @@ class Trainer:
         # backward and update trainable parameters
         self.model.zero_grad()
         loss.backward()
+
+        for name, param in self.model.named_parameters():
+            if param.requires_grad:
+                print(f"Step {step}, Gradient {name} - Mean: {param.grad.mean()}, Std: {param.grad.std()}")
+
+
         if cfg.SOLVER.GRAD_L2_CLIP > 0:
             torch.nn.utils.clip_grad_norm(self.model.parameters(), cfg.SOLVER.GRAD_L2_CLIP)
         self.optimizer.step()
@@ -139,8 +150,11 @@ class Trainer:
         '''
         使用单机多卡训练的模型权重保存方式
         '''
-        torch.save(self.model.module.state_dict(), model_path)
-        # torch.save(self.model.state_dict(), model_path)
+        # 使用单机多卡训练的模型权重保存方式
+        if hasattr(self.model, 'module'):
+            torch.save(self.model.module.state_dict(), model_path)
+        else:
+            torch.save(self.model.state_dict(), model_path)
         print('save model to {}'.format(model_path))
 
     def _vis_generate_samples(self, gt_coords, preds, character_id, step):

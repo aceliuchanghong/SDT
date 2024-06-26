@@ -124,6 +124,7 @@ python evaluate.py --data_path Generated/Chinese
 
 ```
 python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --style_path style_samples
+python user_generate.py --pretrained_model checkpoint_path/checkpoint-iter199999.pth --dir Generated/Chinese_User
 ```
 
 **png转ttf**
