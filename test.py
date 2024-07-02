@@ -27,8 +27,8 @@ def main(opt):
                                               sampler=None,
                                               drop_last=False,
                                               collate_fn=test_dataset.collate_fn_,
-                                              # num_workers=cfg.DATA_LOADER.NUM_THREADS,
-                                              num_workers=0
+                                              num_workers=cfg.DATA_LOADER.NUM_THREADS,
+                                              # num_workers=0
                                               )
 
     char_dict = test_dataset.char_dict
@@ -43,13 +43,23 @@ def main(opt):
     model = SDT_Generator(num_encoder_layers=cfg.MODEL.ENCODER_LAYERS,
                           num_head_layers=cfg.MODEL.NUM_HEAD_LAYERS,
                           wri_dec_layers=cfg.MODEL.WRI_DEC_LAYERS,
-                          gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS).to('cuda')
+                          gly_dec_layers=cfg.MODEL.GLY_DEC_LAYERS)
+
+    # 使用nn.DataParallel model在多个GPU上运行
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        model = torch.nn.DataParallel(model)
+    else:
+        print("Using single GPU or CPU")
+
+    model.to('cuda' if torch.cuda.is_available() else 'cpu')
+
     if len(opt.pretrained_model) > 0:
         model_weight = torch.load(opt.pretrained_model)
-        model.load_state_dict(model_weight)
-        print('load pretrained model from {}'.format(opt.pretrained_model))
+        model.module.load_state_dict(model_weight)
+        print('Loaded pretrained model from {}'.format(opt.pretrained_model))
     else:
-        raise IOError('input the correct checkpoint path')
+        raise IOError('Input the correct checkpoint path')
     model.eval()
 
     """calculate the total batches of generated samples"""
@@ -74,14 +84,11 @@ def main(opt):
                     data['writer_id'].long().cuda(), \
                     data['img_list'].cuda(), \
                     data['char_img'].cuda()
-                preds = model.inference(img_list, char_img, 120)
+                preds = model.module.inference(img_list, char_img, 120)
                 bs = character_id.shape[0]
                 # Start of Sequence, SOS
-                # 目的是在每个预测序列的开头添加一个 SOS 符号，以便在序列生成任务中标记序列的开始
                 SOS = torch.tensor(bs * [[0, 0, 1, 0, 0]]).unsqueeze(1).to(preds)
                 preds = torch.cat((SOS, preds), 1)  # add the SOS token like GT
-                # preds.detach()：从当前计算图中分离 preds 张量。这意味着 preds 将不再参与梯度计算，即不会在反向传播中更新其参数。
-                # 将 preds 张量从 GPU 转移到 CPU。如果代码之前在 GPU 上运行，这一步是必要的，因为 NumPy 只能在 CPU 上操作。
                 preds = preds.detach().cpu().numpy()
 
                 test_cache = {}
@@ -100,8 +107,6 @@ def main(opt):
                     writeCache(test_env, test_cache)
                 elif opt.store_type == 'img':
                     for i, pred in enumerate(preds):
-                        """intends to blur the boundaries of each sample to fit the actual using situations,
-                            as suggested in 'Deep imitator: Handwriting calligraphy imitation via deep attention networks'"""
                         sk_pil = coords_render(preds[i], split=True, width=256, height=256, thickness=8, board=0)
                         character = char_dict[character_id[i].item()]
                         save_path = os.path.join(opt.save_dir, 'test',
@@ -117,7 +122,6 @@ def main(opt):
 if __name__ == '__main__':
     """Parse input arguments"""
     parser = argparse.ArgumentParser()
-    # 有了dest 在命令行中运行程序并传递 --cfg some_config.yml，那么 args.cfg_file 将等于 'some_config.yml'。
     parser.add_argument('--cfg', dest='cfg_file', default='configs/CHINESE_CASIA.yml',
                         help='Config file for training (and optionally testing)')
     parser.add_argument('--dir', dest='save_dir', default='Generated/Chinese',
