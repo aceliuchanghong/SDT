@@ -69,9 +69,9 @@ def get_ttf_files(directory):
 
 if __name__ == '__main__':
     """
-    ffpython D:\aProject\py\SDT\test\test_ttf2png.py
+    ffpython D:\\aProject\\py\\SDT\\test\\test_ttf2png.py
     """
-    json_path = r'D:\aProject\py\SDT\test\txt9169.json'
+    json_path = r'/old_test\txt9169.json'
     output_dir = './LCH_pics'
 
     ttf_dir = r'D:\download\Chinese-Fonts-Dataset-main\Chinese-Fonts-Dataset-main\ttf格式\衬线体\仿宋'
