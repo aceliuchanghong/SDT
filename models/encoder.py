@@ -9,7 +9,7 @@ from torchvision.models.resnet import ResNet18_Weights
 class Content_TR(nn.Module):
     def __init__(self,
                  d_model=256,
-                 nhead=8,
+                 num_head=8,
                  num_encoder_layers=3,
                  dim_feedforward=2048,
                  dropout=0.1,
@@ -23,7 +23,7 @@ class Content_TR(nn.Module):
                 list(models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).children())[1:-2]
         ))
         encoder_layer = TransformerEncoderLayer(
-            d_model, nhead, dim_feedforward, dropout, activation, normalize_before
+            d_model, num_head, dim_feedforward, dropout, activation, normalize_before
         )
         encoder_norm = nn.LayerNorm(d_model) if normalize_before else None
         self.add_position = PositionalEncoding(dropout=0.1, dim=d_model)

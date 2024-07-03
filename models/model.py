@@ -86,7 +86,7 @@ class SDT_Generator(nn.Module):
 
         # content encoder
         # 内容编码器 用于对输入的内容进行编码，以提取内容信息。
-        self.content_encoder = Content_TR(d_model, num_encoder_layers)
+        self.content_encoder = Content_TR(d_model=d_model, num_encoder_layers=num_encoder_layers)
 
         # decoder for receiving writer-wise and character-wise styles
         decoder_layer = TransformerDecoderLayer(
@@ -116,7 +116,7 @@ class SDT_Generator(nn.Module):
         )
         # 序列到嵌入 (SeqtoEmb) 和 嵌入到序列 (EmbtoSeq)
         # 这两个模块用于处理序列数据和嵌入数据之间的转换。
-        self.SeqtoEmb = SeqtoEmb(input_dim=d_model)
+        self.SeqtoEmb = SeqtoEmb(output_dim=d_model)
         self.EmbtoSeq = EmbtoSeq(input_dim=d_model)
         self.add_position = PositionalEncoding(dropout=0.1, dim=d_model)
         # 参数重置 用于初始化模型的参数
@@ -303,10 +303,10 @@ class SeqtoEmb(nn.Module):
     project the handwriting sequences to the transformer hidden space
     """
 
-    def __init__(self, input_dim, dropout=0.1):
+    def __init__(self, output_dim, dropout=0.1):
         super().__init__()
         self.fc_1 = nn.Linear(5, 256)
-        self.fc_2 = nn.Linear(256, input_dim)
+        self.fc_2 = nn.Linear(256, output_dim)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, seq):
@@ -346,5 +346,5 @@ def generate_square_subsequent_mask(sz: int) -> Tensor:
         .float()
         .masked_fill(mask == 0, float('-inf'))
         .masked_fill(mask == 1, float(0.0))
-        )
+    )
     return mask

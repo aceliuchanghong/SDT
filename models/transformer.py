@@ -172,13 +172,20 @@ class TransformerEncoderLayer(nn.Module):
                     src_mask: Optional[Tensor] = None,
                     src_key_padding_mask: Optional[Tensor] = None,
                     pos: Optional[Tensor] = None):
+        # LayerNorm
         src2 = self.norm1(src)
+        # 带位置编码的嵌入
         q = k = self.with_pos_embed(src2, pos)
+        # 多头自注意力机制
         src2 = self.self_attn(q, k, value=src2, attn_mask=src_mask,
                               key_padding_mask=src_key_padding_mask)[0]
+        # 残差连接和Dropout
         src = src + self.dropout1(src2)
+        # 再次归一化
         src2 = self.norm2(src)
+        # 前馈神经网络 (Feedforward Neural Network)
         src2 = self.linear2(self.dropout(self.activation(self.linear1(src2))))
+        # 残差连接和Dropout (Residual Connection and Dropout)
         src = src + self.dropout2(src2)
         return src
 
