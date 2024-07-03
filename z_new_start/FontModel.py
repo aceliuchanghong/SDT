@@ -42,8 +42,12 @@ class FontModel(nn.Module):
         # 风格特征编码器
         writer_norm = nn.LayerNorm(d_model) if normalize_before else None
         glyph_norm = nn.LayerNorm(d_model) if normalize_before else None
-        self.writer_encoder = TransformerEncoder(encoder_layer, num_writer_encoder_layers, writer_norm)
-        self.glyph_encoder = TransformerEncoder(encoder_layer, num_glyph_encoder_layers, glyph_norm)
+        self.writer_encoder = TransformerEncoder(
+            encoder_layer, num_writer_encoder_layers, writer_norm
+        )
+        self.glyph_encoder = TransformerEncoder(
+            encoder_layer, num_glyph_encoder_layers, glyph_norm
+        )
 
         # 内容编码器 用于对输入的内容进行编码，以提取内容信息。
         self.content_encoder = Content_TR(
@@ -97,25 +101,30 @@ class FontModel(nn.Module):
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
-    def forward(self, img):
-        # 图像特征提取
-        img_features = self.conv(img)
-        img_features = img_features.flatten(2)  # 展平，以便于输入Transformer
-        img_features = img_features + self.positional_encoding[:, :img_features.size(1), :]
+    def forward(self, image, writer_style, content_seq):
+        # 提取图像特征
+        feat = self.feat_encoder(image)
+        feat = feat.flatten(2).permute(2, 0, 1)  # (batch_size, channels, H, W) -> (H*W, batch_size, channels)
 
-        # Transformer 编码器
-        encoder_output = self.transformer_encoder(img_features)
+        # Transformer编码器处理图像特征
+        encoded_feat = self.base_encoder(feat)
 
-        # 书写特征解码器
-        wri_output = self.wri_transformer_decoder(encoder_output, encoder_output)
+        # 编码风格特征
+        writer_feat = self.writer_encoder(writer_style)
+        glyph_feat = self.glyph_encoder(encoded_feat)
 
-        # 字形特征解码器
-        gly_output = self.gly_transformer_decoder(encoder_output, encoder_output)
+        # 编码内容
+        content_feat = self.content_encoder(content_seq)
 
-        # 输出
-        output = self.fc_out(gly_output.mean(dim=1))
+        # 解码风格特征和内容特征
+        writer_decoded = self.writer_transformer_decoder(content_feat, writer_feat)
+        glyph_decoded = self.glyph_transformer_decoder(content_feat, glyph_feat)
 
-        return output
+        # 多层感知器处理
+        writer_output = self.pro_mlp_writer(writer_decoded)
+        character_output = self.pro_mlp_character(glyph_decoded)
+
+        return writer_output, character_output
 
     def inference(self, img):
         self.eval()

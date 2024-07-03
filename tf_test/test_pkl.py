@@ -21,10 +21,10 @@ if __name__ == '__main__':
     data_path = os.path.join(root, script[dataset][0])
     content = pickle.load(open(os.path.join(data_path, script[dataset][1]), 'rb'))
     for _ in content:
-        print(_, content[_])
-        plt.imshow(content[_], cmap='gray')
-        plt.show()
-        break
+        if _ in ('一', '吖', '哎', '艾', '鞍'):
+            print(_, content[_])
+            plt.imshow(content[_], cmap='gray')
+            plt.show()
     char_dict = pickle.load(open(os.path.join(data_path, 'character_dict.pkl'), 'rb'))
     print(char_dict)
     all_writer = pickle.load(open(os.path.join(data_path, 'writer_dict.pkl'), 'rb'))
