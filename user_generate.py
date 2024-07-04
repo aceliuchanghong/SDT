@@ -63,7 +63,7 @@ def main(opt):
             preds = model.module.inference(img_list, char_img, 120)
             bs = char_img.shape[0]
             SOS = torch.tensor(bs * [[0, 0, 1, 0, 0]]).unsqueeze(1).to(preds)
-            preds = torch.cat((SOS, preds), 1)  # add the SOS token like GT(gt基本事实（Ground Truth)
+            preds = torch.cat((SOS, preds), 1)  # add the SOS token like GT(gt基本事实-Ground Truth)
             preds = preds.detach().cpu().numpy()
 
             for i, pred in enumerate(preds):

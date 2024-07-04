@@ -54,7 +54,6 @@ def main(opt):
         model = nn.DataParallel(model)
     else:
         print("no gpu here: ", torch.cuda.device_count())
-    # model.content_encoder 改成==> model.module.content_encoder
 
 
     model.to('cuda')
@@ -62,6 +61,16 @@ def main(opt):
         model.module.load_state_dict(torch.load(opt.pretrained_model))
         print('load pretrained model from {}'.format(opt.pretrained_model))
     elif len(opt.content_pretrained) > 0:
+        """
+        只加载了model的content_encoder
+        pretrained_dict = {
+            "feature_ext.layer1.weight": ...,
+            "feature_ext.layer1.bias": ...,
+            "feature_ext.layer2.weight": ...,
+            "other_param.weight": ...,
+            ...
+        }
+        """
         model_dict = load_specific_dict(model.module.content_encoder, opt.content_pretrained, "feature_ext")
         model.module.content_encoder.load_state_dict(model_dict)
         print('load content pretrained model from {}'.format(opt.content_pretrained))

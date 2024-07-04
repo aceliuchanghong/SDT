@@ -125,11 +125,16 @@ def load_specific_dict(model, pretrained_model, par):
     # 它获取模型的当前状态字典（model.state_dict()），这包含了模型的所有参数
     model_dict = model.state_dict()
     pretrained_dict = torch.load(pretrained_model)
+    # 检查 `par` 是否在预训练模型参数字典的第一个键中
     if par in list(pretrained_dict.keys())[0]:
+        # 计算 `par` 字符串的长度并加1，用于截取键
         count = len(par) + 1
+        # 更新预训练模型参数字典，只保留键在 `count` 之后部分在当前模型参数字典中的键值对
         pretrained_dict = {k[count:]: v for k, v in pretrained_dict.items() if k[count:] in model_dict}
     else:
+        # 如果 `par` 不在第一个键中，则直接过滤保留键在当前模型参数字典中的键值对
         pretrained_dict = {k: v for k, v in pretrained_dict.items() if k in model_dict}
+    # 如果预训练参数字典不为空，则更新当前模型的参数字典
     if len(pretrained_dict) > 0:
         model_dict.update(pretrained_dict)
     else:
@@ -163,19 +168,26 @@ def write_pkl(file_path, file_name, imgs_path, show_pic_num=0):
     return img_list
 
 
-'''
-description: convert the np version of coordinates to the list counterpart
-将一个包含坐标信息的 NumPy 数组分割成多个笔画，并将每个笔画的坐标序列存储在一个列表中，同时计算并返回一个长度值
-'''
-
-
 def dxdynp_to_list(coordinates):
+    """
+    description: convert the np version of coordinates to the list counterpart
+    将一个包含坐标信息的 NumPy 数组分割成多个笔画，并将每个笔画的坐标序列存储在一个列表中，同时计算并返回一个长度值
+    coord_list = [array([x1, y1, x2, y2, ..., xn, yn]), array([x1, y1, x2, y2, ..., xm, ym]), ...]
+    length = float_value
+    """
+    # 查找 coordinates 数组中最后一列等于1的索引，结果存储在 ids 中
     ids = np.where(coordinates[:, -1] == 1)[0]
+    # 计算 coordinates 数组中第3列和第4列的总和，结果存储在 length 中
     length = coordinates[:, 2:4].sum()
+    # 如果 ids 为空，即 coordinates 中没有最后一列为1的行。
     if len(ids) < 1:  # if not exist [0, 0, 1]
+        # 查找 coordinates 数组中第4列等于1的索引，并将其值加1，结果存储在 ids 中。
         ids = np.where(coordinates[:, 3] == 1)[0] + 1
+        # 如果 ids 仍为空，即 coordinates 中没有第4列为1的行。
         if len(ids) < 1:  # if not exist [0, 1, 0]
+            # 将 ids 设置为数组长度。
             ids = np.array([len(coordinates)])
+            # 根据 ids 对 coordinates 进行分割，并移除空列表。
             xys_split = np.split(coordinates, ids, axis=0)[:-1]  # remove the blank list
         else:
             xys_split = np.split(coordinates, ids, axis=0)
@@ -196,24 +208,35 @@ def dxdynp_to_list(coordinates):
     return coord_list, length
 
 
-'''
-description: 
-    [x, y] --> [x, y, p1, p2, p3]
-    see 'A NEURAL REPRESENTATION OF SKETCH DRAWINGS' for more details
-'''
-
-
 def corrds2xys(coordinates):
+    """
+    description:
+        [x, y] --> [x, y, p1, p2, p3]
+        see 'A NEURAL REPRESENTATION OF SKETCH DRAWINGS' for more details
+    new_strokes = array([
+        [x1, y1, 1, 0, 0],
+        [x2, y2, 1, 0, 0],
+        ...,
+        [xn, yn, 0, 1, 0],  # 笔画1的结束点
+        [x1, y1, 1, 0, 0],
+        ...,
+        [xm, ym, 0, 1, 0]   # 笔画2的结束点
+    ])
+    """
     new_strokes = []
     for stroke in coordinates:
+        # 遍历笔画中的每个(x, y)对，将其重塑为(-1, 2)的形状。
         for (x, y) in np.array(stroke).reshape((-1, 2)):
+            # 生成一个五维向量 [x, y, 1, 0, 0]，数据类型为 float32。
             p = np.array([x, y, 1, 0, 0], np.float32)
             new_strokes.append(p)
         try:
+            # 将每个笔画的最后一个点的后三个元素设置为 [0, 1, 0]，表示笔画的结束。
             new_strokes[-1][2:] = [0, 1, 0]  # set the end of a stroke
         except IndexError:
             print(stroke)
             return None
+    # 将 new_strokes 列表转换为NumPy数组。
     new_strokes = np.stack(new_strokes, axis=0)
     return new_strokes
 

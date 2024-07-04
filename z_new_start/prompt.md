@@ -915,3 +915,75 @@ def __getitem__(self, idx):
     return image
 ```
 """
+
+
+---
+
+```python
+train_dataset = ScriptDataset(
+        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TRAIN.ISTRAIN, cfg.MODEL.NUM_IMGS
+    )
+train_loader = torch.utils.data.DataLoader(
+    train_dataset,
+    batch_size=cfg.TRAIN.IMS_PER_BATCH,
+    shuffle=True,
+    drop_last=False,
+    collate_fn=train_dataset.collate_fn_,
+    num_workers=cfg.DATA_LOADER.NUM_THREADS
+)
+```
+ScriptDataset的collate_fn_定义
+```python
+    def collate_fn_(self, batch_data):
+        bs = len(batch_data)
+        # 找到 batch 中最长的序列长度，并加1（因为需要在末尾填充一个结束状态）
+        max_len = max([s['coords'].shape[0] for s in batch_data]) + 1
+        output = {'coords': torch.zeros((bs, max_len, 5)),  # (batch_size, max_len, 5)的张量，表示每个样本的坐标和状态
+                  # (x, y, state_1, state_2, state_3)==> (x,y,pen_down,pen_up,pen_end) 下笔、提笔、终止
+                  'coords_len': torch.zeros((bs,)),  # 每个样本的实际长度
+                  'character_id': torch.zeros((bs,)),
+                  'writer_id': torch.zeros((bs,)),
+                  'img_list': [],
+                  'char_img': [],
+                  'img_label': []}
+        # 将所有未使用的空间填充为结束状态
+        output['coords'][:, :, -1] = 1  # 用笔的结束状态填充
+
+        for i in range(bs):
+            s = batch_data[i]['coords'].shape[0]
+            output['coords'][i, :s] = batch_data[i]['coords'] # 填充当前样本的坐标和状态
+            output['coords'][i, 0, :2] = 0  # 在第一个token处放置下笔状态
+            output['coords_len'][i] = s
+            output['character_id'][i] = batch_data[i]['character_id']
+            output['writer_id'][i] = batch_data[i]['writer_id']
+            output['img_list'].append(batch_data[i]['img_list'])
+            output['char_img'].append(batch_data[i]['char_img'])
+            output['img_label'].append(batch_data[i]['img_label'])
+        output['img_list'] = torch.stack(output['img_list'], 0)  # -> (B, num_img, 1, H, W)
+        temp = torch.stack(output['char_img'], 0)
+        output['char_img'] = temp.unsqueeze(1)
+        output['img_label'] = torch.cat(output['img_label'], 0)
+        output['img_label'] = output['img_label'].view(-1, 1).squeeze()
+        return output
+```
+collate_fn_有什么用?
+
+
+ans:
+"""
+collate_fn_ 在 PyTorch 数据加载器 (DataLoader) 中用于处理和组合批次数据。
+在数据集从 Dataset 类中读取样本后，DataLoader 会将这些样本组织成批次，
+以便送入模型进行训练或推理。collate_fn_ 函数的作用是定义如何将一批样本组合成一个批次
+
+填充序列：由于样本的序列长度不一致，collate_fn_ 会找到批次中最长的序列长度，
+并将所有序列填充到这个长度。这是为了保证所有样本在同一个批次中具有相同的维度，便于批量计算。
+初始化输出张量：collate_fn_ 会初始化一个输出字典， 用于存储组合后的批次数据。
+这个字典包括坐标和状态 (coords)、样本实际长度 (coords_len)、字符 ID (character_id)、作者 ID (writer_id)、图片列表 (img_list)、字符图片 (char_img)、图片标签 (img_label) 等信息。
+填充数据：collate_fn_ 会将每个样本的数据填充到初始化的张量中。
+如果样本长度不足，则用特殊标记（例如笔的结束状态）进行填充。
+同时，collate_fn_ 还会对一些特定位置的值进行处理，如在第一个 token 处放置下笔状态。
+处理列表数据：collate_fn_ 会将批次中的列表数据（如图片列表和字符图片）进行堆叠和调整，
+以便组合成一个批次。
+返回批次数据：最终，collate_fn_ 会返回组合好的批次数据，供模型训练或推理使用。
+当迭代 train_loader 时，DataLoader 会自动处理从数据集中取出的样本，并通过 collate_fn_ 组合这些样本，形成一个个批次供模型使用
+"""

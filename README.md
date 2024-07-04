@@ -45,6 +45,15 @@ mdb 文件结构eg:
     coords.shape: (42, 5)
         (x,y,pen_down,pen_up,pen_end)下笔、提笔、终止
     fname: C004-f.pot
+
+In this data format, the initial absolute coordinate of the drawing is located at the origin. A
+sketch is a list of points, and each point is a vector consisting of 5 elements: (∆x, ∆y, p1, p2, p3).
+The first two elements are the offset distance in the x and y directions of the pen from the previous
+point. The last 3 elements represents a binary one-hot vector of 3 possible states. The first pen state,
+p1, indicates that the pen is currently touching the paper, and that a line will be drawn connecting the
+next point with the current point. The second pen state, p2, indicates that the pen will be lifted from
+the paper after the current point, and that no line will be drawn next. The final pen state, p3, indicates
+that the drawing has ended, and subsequent points, including the current point, will not be rendered.
 ```
 
 需要知道的基本Func
@@ -202,6 +211,7 @@ SDT/
 - 输入图片标准化
 - mdb生成
 - 自己训练
+- 修改了错误的代码
 
 ```
 首先获取pkl文件==>ttf转png(test/test_ttf2png.py实现)==>png转pkl(utils/create_test_and_train_pkl.py实现)
