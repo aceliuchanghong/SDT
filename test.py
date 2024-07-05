@@ -95,6 +95,17 @@ def main(opt):
                 coords = coords.detach().cpu().numpy()
                 if opt.store_type == 'online':
                     for i, pred in enumerate(preds):
+                        # with open(os.path.join(opt.save_dir, 'test', '00.txt'), 'a', encoding='utf-8') as f:
+                        #     f.write(f"{str(i)} pred[i]:\n")
+                        #     f.write(str(pred[i]))
+                        #     f.write("\ncoords[i]:\n")
+                        #     f.write(str(coords[i]))
+                        #     f.write("\ndxdynp_to_list:\n")
+                        #     list_pred, other_pred = dxdynp_to_list(preds[i])
+                        #     f.write(str(list_pred))
+                        #     f.write("\ndxdynp_to_list_gt:\n")
+                        #     list_gt, other_gt = dxdynp_to_list(coords[i])
+                        #     f.write(str(list_gt))
                         pred, _ = dxdynp_to_list(preds[i])
                         coord, _ = dxdynp_to_list(coords[i])
                         data = {'coordinates': pred, 'writer_id': writer_id[i].item(),

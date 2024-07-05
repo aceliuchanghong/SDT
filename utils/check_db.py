@@ -2,7 +2,7 @@ import sqlite3
 from sqlite3 import Connection
 import logging
 
-import config
+from utils import config
 
 
 class VerboseCursor(sqlite3.Cursor):

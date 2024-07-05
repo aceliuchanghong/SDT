@@ -3,8 +3,8 @@ import pickle
 import gradio as gr
 from PIL import Image
 import numpy as np
-from check_db import excute_sqlite_sql
-from config import create_table_sql, table_select_nums_sql, table_del_url_sql, table_add_sql
+from .check_db import excute_sqlite_sql
+from .config import create_table_sql, table_select_nums_sql, table_del_url_sql, table_add_sql
 
 path_test = '../data/CASIA_CHINESE/test_style_samples'
 path_train = '../data/CASIA_CHINESE/train_style_samples'

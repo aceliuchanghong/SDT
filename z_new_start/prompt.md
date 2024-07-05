@@ -906,6 +906,7 @@ mean 和 std 都是 (0.5)，意味着假设输入图像的每个通道的像素�
 在 FontDataset 类中，会在 __getitem__ 方法中使用 self.transform 对加载的图像进行预处理。
 如果没有 transforms.Compose，就需要手动逐一应用这些变换操作。
 transforms.Compose 简化了这一过程，将多个变换组合在一起，以便在数据加载时一次性应用
+
 ```python
 def __getitem__(self, idx):
     img_path = self.image_paths[idx]
@@ -914,6 +915,7 @@ def __getitem__(self, idx):
         image = self.transform(image)
     return image
 ```
+
 """
 
 
@@ -921,8 +923,8 @@ def __getitem__(self, idx):
 
 ```python
 train_dataset = ScriptDataset(
-        cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TRAIN.ISTRAIN, cfg.MODEL.NUM_IMGS
-    )
+    cfg.DATA_LOADER.PATH, cfg.DATA_LOADER.DATASET, cfg.TRAIN.ISTRAIN, cfg.MODEL.NUM_IMGS
+)
 train_loader = torch.utils.data.DataLoader(
     train_dataset,
     batch_size=cfg.TRAIN.IMS_PER_BATCH,
@@ -932,42 +934,44 @@ train_loader = torch.utils.data.DataLoader(
     num_workers=cfg.DATA_LOADER.NUM_THREADS
 )
 ```
+
 ScriptDataset的collate_fn_定义
+
 ```python
     def collate_fn_(self, batch_data):
-        bs = len(batch_data)
-        # 找到 batch 中最长的序列长度，并加1（因为需要在末尾填充一个结束状态）
-        max_len = max([s['coords'].shape[0] for s in batch_data]) + 1
-        output = {'coords': torch.zeros((bs, max_len, 5)),  # (batch_size, max_len, 5)的张量，表示每个样本的坐标和状态
-                  # (x, y, state_1, state_2, state_3)==> (x,y,pen_down,pen_up,pen_end) 下笔、提笔、终止
-                  'coords_len': torch.zeros((bs,)),  # 每个样本的实际长度
-                  'character_id': torch.zeros((bs,)),
-                  'writer_id': torch.zeros((bs,)),
-                  'img_list': [],
-                  'char_img': [],
-                  'img_label': []}
-        # 将所有未使用的空间填充为结束状态
-        output['coords'][:, :, -1] = 1  # 用笔的结束状态填充
+    bs = len(batch_data)
+    # 找到 batch 中最长的序列长度，并加1（因为需要在末尾填充一个结束状态）
+    max_len = max([s['coords'].shape[0] for s in batch_data]) + 1
+    output = {'coords': torch.zeros((bs, max_len, 5)),  # (batch_size, max_len, 5)的张量，表示每个样本的坐标和状态
+              # (x, y, state_1, state_2, state_3)==> (x,y,pen_down,pen_up,pen_end) 下笔、提笔、终止
+              'coords_len': torch.zeros((bs,)),  # 每个样本的实际长度
+              'character_id': torch.zeros((bs,)),
+              'writer_id': torch.zeros((bs,)),
+              'img_list': [],
+              'char_img': [],
+              'img_label': []}
+    # 将所有未使用的空间填充为结束状态
+    output['coords'][:, :, -1] = 1  # 用笔的结束状态填充
 
-        for i in range(bs):
-            s = batch_data[i]['coords'].shape[0]
-            output['coords'][i, :s] = batch_data[i]['coords'] # 填充当前样本的坐标和状态
-            output['coords'][i, 0, :2] = 0  # 在第一个token处放置下笔状态
-            output['coords_len'][i] = s
-            output['character_id'][i] = batch_data[i]['character_id']
-            output['writer_id'][i] = batch_data[i]['writer_id']
-            output['img_list'].append(batch_data[i]['img_list'])
-            output['char_img'].append(batch_data[i]['char_img'])
-            output['img_label'].append(batch_data[i]['img_label'])
-        output['img_list'] = torch.stack(output['img_list'], 0)  # -> (B, num_img, 1, H, W)
-        temp = torch.stack(output['char_img'], 0)
-        output['char_img'] = temp.unsqueeze(1)
-        output['img_label'] = torch.cat(output['img_label'], 0)
-        output['img_label'] = output['img_label'].view(-1, 1).squeeze()
-        return output
+    for i in range(bs):
+        s = batch_data[i]['coords'].shape[0]
+        output['coords'][i, :s] = batch_data[i]['coords']  # 填充当前样本的坐标和状态
+        output['coords'][i, 0, :2] = 0  # 在第一个token处放置下笔状态
+        output['coords_len'][i] = s
+        output['character_id'][i] = batch_data[i]['character_id']
+        output['writer_id'][i] = batch_data[i]['writer_id']
+        output['img_list'].append(batch_data[i]['img_list'])
+        output['char_img'].append(batch_data[i]['char_img'])
+        output['img_label'].append(batch_data[i]['img_label'])
+    output['img_list'] = torch.stack(output['img_list'], 0)  # -> (B, num_img, 1, H, W)
+    temp = torch.stack(output['char_img'], 0)
+    output['char_img'] = temp.unsqueeze(1)
+    output['img_label'] = torch.cat(output['img_label'], 0)
+    output['img_label'] = output['img_label'].view(-1, 1).squeeze()
+    return output
 ```
-collate_fn_有什么用?
 
+collate_fn_有什么用?
 
 ans:
 """
@@ -978,7 +982,8 @@ collate_fn_ 在 PyTorch 数据加载器 (DataLoader) 中用于处理和组合批
 填充序列：由于样本的序列长度不一致，collate_fn_ 会找到批次中最长的序列长度，
 并将所有序列填充到这个长度。这是为了保证所有样本在同一个批次中具有相同的维度，便于批量计算。
 初始化输出张量：collate_fn_ 会初始化一个输出字典， 用于存储组合后的批次数据。
-这个字典包括坐标和状态 (coords)、样本实际长度 (coords_len)、字符 ID (character_id)、作者 ID (writer_id)、图片列表 (img_list)、字符图片 (char_img)、图片标签 (img_label) 等信息。
+这个字典包括坐标和状态 (coords)、样本实际长度 (coords_len)、字符 ID (character_id)、作者 ID (writer_id)、图片列表 (img_list)
+、字符图片 (char_img)、图片标签 (img_label) 等信息。
 填充数据：collate_fn_ 会将每个样本的数据填充到初始化的张量中。
 如果样本长度不足，则用特殊标记（例如笔的结束状态）进行填充。
 同时，collate_fn_ 还会对一些特定位置的值进行处理，如在第一个 token 处放置下笔状态。
@@ -987,3 +992,185 @@ collate_fn_ 在 PyTorch 数据加载器 (DataLoader) 中用于处理和组合批
 返回批次数据：最终，collate_fn_ 会返回组合好的批次数据，供模型训练或推理使用。
 当迭代 train_loader 时，DataLoader 会自动处理从数据集中取出的样本，并通过 collate_fn_ 组合这些样本，形成一个个批次供模型使用
 """
+
+---
+
+DTW指标是什么意思?
+
+ans:
+"""
+动态时间规整（Dynamic Time Warping，DTW）是一种衡量时间序列相似性的重要方法。它特别适用于比较长度不同的时间序列，通过动态调整时间轴上的点匹配来最小化时间序列之间的距离。
+
+DTW指标的具体含义如下：
+
+距离度量：DTW通过比较两个时间序列中的各个点，计算它们之间的距离，并找到一种匹配方式，使得总距离最小化。这个总距离就是DTW指标，用于衡量两个时间序列的相似性。
+
+时间轴对齐：不同于欧几里得距离等常规方法，DTW允许对时间轴进行非线性变形，从而更好地对齐时间序列的特征。例如，在语音识别中，DTW可以对齐说话速度不同的两个语音序列。
+
+灵活性：DTW在处理时间序列长度不一致、速度变化、和噪声等方面具有很大的灵活性。这使得它在语音识别、手写字符识别、医学信号分析等领域得到了广泛应用。
+
+计算复杂性：尽管DTW的计算复杂度相对较高，尤其是对长序列，但通过改进算法和使用动态规划技术，计算效率得到了显著提升。
+
+在模型训练中，使用DTW指标可以帮助评估生成结果与目标序列之间的相似性。具体来说，生成结果的DTW指标越低，表明生成序列与目标序列越相似，从而反映出模型的生成质量越高。
+"""
+
+---
+
+```python
+class SDT_Generator(nn.Module):
+
+    def __init__(self,
+                 d_model=512,
+                 nhead=8,
+                 num_encoder_layers=2,
+                 num_head_layers=1,
+                 wri_dec_layers=2,
+                 gly_dec_layers=2,
+                 dim_feedforward=2048,
+                 dropout=0.1,
+                 activation="relu",
+                 normalize_before=True,
+                 return_intermediate_dec=True):
+        super(SDT_Generator, self).__init__()
+
+        self.Feat_Encoder = nn.Sequential(*(  # 一个输入通道，输出64个通道。卷积核大小为7，步长为2，填充为3。bias 设置为 False 表示不使用偏置项。
+                [nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)]
+                +
+                # 获取了 ResNet-18 模型的子模块列表，然后去掉了列表的第一个和最后两个模块。
+                # 这些被去掉的模块通常是 ResNet-18 模型的头部，包括全局平均池化层和全连接层。
+                # 从列表的第二个元素开始，一直到倒数第三个元素结束，不包括这两个元素
+                list(models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).children())[1:-2]
+        ))
+        encoder_layer = TransformerEncoderLayer(
+            d_model, nhead, dim_feedforward, dropout, activation, normalize_before
+        )
+        # Transformer 编码器 用于对输入的特征进行编码，以提取全局的风格信息。
+        self.base_encoder = TransformerEncoder(encoder_layer, num_encoder_layers, None)
+        writer_norm = nn.LayerNorm(d_model) if normalize_before else None
+        glyph_norm = nn.LayerNorm(d_model) if normalize_before else None
+        # Writer Head 和 Glyph Head: 这两个头部分别用于提取作者风格和字符风格。
+        # 它们使用相同的 Transformer 编码器层，但可以有不同的层数。
+        self.writer_head = TransformerEncoder(encoder_layer, num_head_layers, writer_norm)
+        self.glyph_head = TransformerEncoder(encoder_layer, num_head_layers, glyph_norm)
+
+        # content encoder
+        # 内容编码器 用于对输入的内容进行编码，以提取内容信息。
+        self.content_encoder = Content_TR(d_model=d_model, num_encoder_layers=num_encoder_layers)
+
+        # decoder for receiving writer-wise and character-wise styles
+        decoder_layer = TransformerDecoderLayer(
+            d_model, nhead, dim_feedforward, dropout, activation, normalize_before
+        )
+        wri_decoder_norm = nn.LayerNorm(d_model) if normalize_before else None
+        self.wri_decoder = TransformerDecoder(
+            decoder_layer, wri_dec_layers, wri_decoder_norm, return_intermediate=return_intermediate_dec
+        )
+        gly_decoder_norm = nn.LayerNorm(d_model) if normalize_before else None
+        self.gly_decoder = TransformerDecoder(
+            decoder_layer, gly_dec_layers, gly_decoder_norm, return_intermediate=return_intermediate_dec
+        )
+
+        self.pro_mlp_writer = nn.Sequential(
+            nn.Linear(512, 4096),
+            nn.GELU(),
+            nn.Linear(4096, 256)
+        )
+        self.pro_mlp_character = nn.Sequential(
+            nn.Linear(512, 4096),
+            nn.GELU(),
+            nn.Linear(4096, 256)
+        )
+
+        self.SeqtoEmb = SeqtoEmb(output_dim=d_model)
+        self.EmbtoSeq = EmbtoSeq(input_dim=d_model)
+        self.add_position = PositionalEncoding(dropout=0.1, dim=d_model)
+        # 参数重置 用于初始化模型的参数
+        self._reset_parameters()
+```
+
+1.假设我写这个模型的forward,应该怎么弄输入呢?输入的格式到底应该是怎么样呢?
+
+
+2.实际写的forward如下,这些个到是什么决定的呢?
+```python
+    def forward(self, style_imgs, seq, char_img):
+        # style_imgs 是风格图片的输入，seq 是序列输入，char_img 是字符图片输入。
+        # 风格图片的批次大小、图片数量、通道数、高度和宽度。
+        batch_size, num_imgs, in_planes, h, w = style_imgs.shape
+
+        # style_imgs: [B, 2*N, C:1, H, W] -> FEAT_ST_ENC: [4*N, B, C:512]
+        # -1是一个特殊的值，表示该维度的大小将通过其他维度的大小和总元素数自动推断出来
+        style_imgs = style_imgs.view(-1, in_planes, h, w)  # [B*2N, C:1, H, W]
+        style_embe = self.Feat_Encoder(style_imgs)  # [B*2N, C:512, 2, 2]
+
+        anchor_num = num_imgs // 2
+        style_embe = style_embe.view(batch_size * num_imgs, 512, -1).permute(2, 0,
+                                                                             1)  # [4, B*2N, C:512] permute,改变张量的维度顺序
+        FEAT_ST_ENC = self.add_position(style_embe)
+
+        memory = self.base_encoder(FEAT_ST_ENC)  # [4, B*2N, C]
+        writer_memory = self.writer_head(memory)
+        glyph_memory = self.glyph_head(memory)
+
+        writer_memory = rearrange(writer_memory, 't (b p n) c -> t (p b) n c',
+                                  b=batch_size, p=2, n=anchor_num)  # [4, 2*B, N, C]
+        glyph_memory = rearrange(glyph_memory, 't (b p n) c -> t (p b) n c',
+                                 b=batch_size, p=2, n=anchor_num)  # [4, 2*B, N, C]
+
+        # writer-nce
+        memory_fea = rearrange(writer_memory, 't b n c ->(t n) b c')  # [4*N, 2*B, C]
+        # 计算memory_fea张量在第0个维度上的平均值
+        compact_fea = torch.mean(memory_fea, 0)  # [2*B, C]
+        # compact_fea:[2*B, C:512] ->  nce_emb: [B, 2, C:128]
+        pro_emb = self.pro_mlp_writer(compact_fea)
+        query_emb = pro_emb[:batch_size, :]
+        pos_emb = pro_emb[batch_size:, :]
+        # 将两个嵌入向量（query_emb和pos_emb）沿着第二个维度（索引为1）堆叠起来，形成一个新的张量
+        nce_emb = torch.stack((query_emb, pos_emb), 1)  # [B, 2, C]
+        nce_emb = nn.functional.normalize(nce_emb, p=2, dim=2)
+
+        # glyph-nce
+        patch_emb = glyph_memory[:, :batch_size]  # [4, B, N, C]
+        # sample the positive pair
+        anc, positive = self.random_double_sampling(patch_emb)
+        n_channels = anc.shape[-1]
+        # -1：这是一个特殊的值，表示该维度的大小由其他维度和总元素数量决定
+        anc = anc.reshape(batch_size, -1, n_channels)
+        # 如果anc是一个形状为(m, n)的二维张量，
+        # 那么torch.mean(anc, 1, keepdim=True)将返回一个形状为(m, 1)的二维张量，
+        # 其中每个元素是原始张量对应行的均值
+        anc_compact = torch.mean(anc, 1, keepdim=True)
+        anc_compact = self.pro_mlp_character(anc_compact)  # [B, 1, C]
+        positive = positive.reshape(batch_size, -1, n_channels)
+        positive_compact = torch.mean(positive, 1, keepdim=True)
+        positive_compact = self.pro_mlp_character(positive_compact)  # [B, 1, C]
+
+        nce_emb_patch = torch.cat((anc_compact, positive_compact), 1)  # [B, 2, C]
+        nce_emb_patch = nn.functional.normalize(nce_emb_patch, p=2, dim=2)
+
+        # input the writer-wise & character-wise styles into the decoder
+        writer_style = memory_fea[:, :batch_size, :]  # [4*N, B, C]
+        glyph_style = glyph_memory[:, :batch_size]  # [4, B, N, C]
+        glyph_style = rearrange(glyph_style, 't b n c -> (t n) b c')  # [4*N, B, C]
+
+        # QUERY: [char_emb, seq_emb]
+        seq_emb = self.SeqtoEmb(seq).permute(1, 0, 2)
+        T, N, C = seq_emb.shape
+
+        char_emb = self.content_encoder(char_img)  # [4, N, 512]
+        char_emb = torch.mean(char_emb, 0)  # [N, 512]
+        char_emb = repeat(char_emb, 'n c -> t n c', t=1)
+        tgt = torch.cat((char_emb, seq_emb), 0)  # [1+T], put the content token as the first token
+        tgt_mask = generate_square_subsequent_mask(sz=(T + 1)).to(tgt)
+        tgt = self.add_position(tgt)
+
+        # [wri_dec_layers, T, B, C]
+        wri_hs = self.wri_decoder(tgt, writer_style, tgt_mask=tgt_mask)
+        # [gly_dec_layers, T, B, C]
+        hs = self.gly_decoder(wri_hs[-1], glyph_style, tgt_mask=tgt_mask)
+
+        # 将矩阵hs的第二和第三维度进行转置
+        h = hs.transpose(1, 2)[-1]  # B T C
+        pred_sequence = self.EmbtoSeq(h)
+        return pred_sequence, nce_emb, nce_emb_patch
+```

@@ -22,11 +22,11 @@ multi-layer transformer decoder:
 
 总体架构
 
-![img.png](paper%2Fpics%2Fimg.png)
+![img.png](paper/pics/img.png)
 
 总体Loss
 
-![img_1.png](paper%2Fpics%2Fimg_1.png)
+![img_1.png](paper/pics/img_1.png)
 
 论文数据集
 
@@ -54,6 +54,12 @@ p1, indicates that the pen is currently touching the paper, and that a line will
 next point with the current point. The second pen state, p2, indicates that the pen will be lifted from
 the paper after the current point, and that no line will be drawn next. The final pen state, p3, indicates
 that the drawing has ended, and subsequent points, including the current point, will not be rendered.
+
+we model (∆x, ∆y)
+as a Gaussian mixture model (GMM) with M normal distributions as in [1, 6], and (q1, q2, q3) as
+a categorical distribution to model the ground truth data (p1, p2, p3), where (q1 + q2 + q3 = 1) as
+done in [7] and [26]. Unlike [6], our generated sequence is conditioned from a latent code z sampled
+from our encoder, which is trained end-to-end alongside the decoder.
 ```
 
 需要知道的基本Func

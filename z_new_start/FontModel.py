@@ -81,6 +81,25 @@ class FontModel(nn.Module):
             nn.Linear(4096, 256)
         )
 
+        """
+        添加笔画宽度和颜色装饰网络
+        width = self.stroke_width_network(features)
+        color = self.color_network(features)
+        由于 pro_mlp_writer 和 pro_mlp_character 生成的特征是 256 维度的，
+        因此 stroke_width_network 和 color_network 接收 256 维度的输入。
+        如果输入维度不同，需要根据实际情况进行调整。
+        """
+        self.stroke_width_network = nn.Sequential(
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1)  # 输出一个值表示笔画宽度
+        )
+        self.color_network = nn.Sequential(
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 3)  # 输出三个值表示颜色的RGB通道
+        )
+
         # 序列到emb (SeqtoEmb) 和 emb到序列 (EmbtoSeq)
         # 这两个模块用于处理序列数据和嵌入数据之间的转换。
         self.SeqtoEmb = SeqtoEmb(output_dim=d_model)
