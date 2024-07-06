@@ -83,3 +83,19 @@ if __name__ == '__main__':
     # ttf_list = get_ttf_files(ttf_dir)
 
     convert_ttf_to_png(json_path, ttf_list, output_dir, sample_count)
+
+    """
+    # sudo apt-get install python3-fontforge
+    # /usr/bin/python3 -c "import fontforge;print(fontforge)"
+    # nohup /usr/bin/python3 ttf2png.py > 2png.log &
+    
+    json_path = '/mnt/data/llch/SDT/test/txt9169.json'
+    output_dir = 'lch_pics'
+
+    ttf_dir = '/mnt/data/llch/Chinese-Fonts-Dataset/z_ttf/中国风/仿宋'
+    sample_count = 10000
+
+    ttf_list = get_ttf_files(ttf_dir)
+
+    convert_ttf_to_png(json_path, ttf_list, output_dir, sample_count)
+    """
