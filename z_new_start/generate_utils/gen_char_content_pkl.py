@@ -7,6 +7,9 @@ std_char_path = r'D:\soft\FontForgeBuilds\LCH_pics\LXGWWenKaiGB-Light'
 get_suffix = '.png'
 
 if __name__ == '__main__':
+    """
+    将字体转png后==>存储标准文字的图像
+    """
     # 获取文件列表
     imgs_file_list = get_files(std_char_path, get_suffix)
     # 存储参数

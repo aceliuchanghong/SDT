@@ -44,12 +44,12 @@ if __name__ == "__main__":
     """
     conda activate SDTLog1
     cd z_new_start/generate_utils
-    python generate_character_pkl.py
-    python generate_character_pkl.py --nums 5
-    python generate_character_pkl.py --nums 5 --not_all
+    python gen_character_pkl.py
+    python gen_character_pkl.py --nums 5
+    python gen_character_pkl.py --nums 5 --not_all
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--not_all', action='store_true', help='有not_all参数的时候不加字母标点之类')
-    parser.add_argument('--nums', default=8000, type=int, help='选择多少字生成')
+    parser.add_argument('--nums', default=10000, type=int, help='选择多少字生成')
     opt = parser.parse_args()
     main(opt)

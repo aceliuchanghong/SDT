@@ -1,7 +1,9 @@
+import os
 import fontforge
+import pickle
 
 
-def get_character_stroke_coordinates(font_path, characters):
+def get_character_stroke_coordinates(font_path, characters, output_dir='.'):
     """
     获取字体文件中每个字符的每个笔画的坐标点。
     font_path (str): 字体文件的路径。
@@ -42,6 +44,12 @@ def get_character_stroke_coordinates(font_path, characters):
 
     # 关闭字体文件
     font.close()
+    # 字体坐标讯息存储为pkl
+    font_name = os.path.basename(font_path).split('.')[0]
+    coordinates["font_name"] = font_name
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    pickle.dump(coordinates, open(output_dir + "/" + font_name + '.pkl', 'wb'))
 
     return coordinates
 
@@ -58,7 +66,9 @@ if __name__ == '__main__':
     characters = ["刘", "一"]
 
     coordinates = get_character_stroke_coordinates(test_ttf, characters)
+    del coordinates['font_name']
     print(coordinates)
+
     for k, v in coordinates.items():
         for i, char in enumerate(v):
             print(k, " stoke:", str(i + 1))
