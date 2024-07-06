@@ -15,7 +15,7 @@ chinese_punctuations = [
     '’',  # 右单引号
     '（',  # 左括号
     '）',  # 右括号
-] # 13
+]  # 13
 numbers_str = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 english_str = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u',
@@ -34,6 +34,8 @@ def main(opt):
         temp_char.append(char_dict[i])
         i += 1
     all_char.extend(temp_char)
+    if len(all_char) < 90:
+        print(all_char)
     pickle.dump(all_char, open('new_character_dict.pkl', 'wb'))
     print("suc generate:", len(all_char))
 

@@ -37,7 +37,8 @@ def resize_thin_character(pics, save_pics_path, show_pics_num, suffix='png', sav
         # 二值化处理
         ret, fix = cv2.threshold(fix, 127, 255, cv2.THRESH_BINARY)
         # 根据fix的大小动态调整结构元素
-        element_size = max(3, int(min(fix.shape) * 0.05))  # 动态计算结构元素的大小，至少为3
+        # element_size = max(3, int(min(fix.shape) * 0.05))  # 动态计算结构元素的大小，至少为3
+        element_size = 2
         element = cv2.getStructuringElement(cv2.MORPH_CROSS, (element_size, element_size))
 
         # 使用循环进行骨架提取

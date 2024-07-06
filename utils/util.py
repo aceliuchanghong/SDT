@@ -149,6 +149,12 @@ def writeCache(env, cache):
 
 
 def write_pkl(file_path, file_name, imgs_path, show_pic_num=0):
+    """
+    file_path pkl位置
+    file_name pkl名字
+    imgs_path 图片list
+    show_pic_num 展示图片数量
+    """
     img_list = []
     index = 0
     for img_path in imgs_path:

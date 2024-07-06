@@ -69,17 +69,17 @@ def get_ttf_files(directory):
 
 if __name__ == '__main__':
     """
-    ffpython D:\\aProject\\py\\SDT\\test\\test_ttf2png.py
+    ffpython D:\\aProject\\py\\SDT\\tf_test\\test_ttf2png.py
     """
-    json_path = r'/old_test\txt9169.json'
+    json_path = r'D:\aProject\py\SDT\tf_test\txt9169.json'
     output_dir = './LCH_pics'
 
     ttf_dir = r'D:\download\Chinese-Fonts-Dataset-main\Chinese-Fonts-Dataset-main\ttf格式\衬线体\仿宋'
-    sample_count = 7000
+    sample_count = 10000
 
-    # ttf_list = [
-    #     r'D:\download\Chinese-Fonts-Dataset-main\Chinese-Fonts-Dataset-main\ttf格式\中国风\宋体\HYCuSongJ.ttf'
-    # ]
-    ttf_list = get_ttf_files(ttf_dir)
+    ttf_list = [
+        r'D:\aProject\py\SDT\z_new_start\generate_utils\LXGWWenKaiGB-Light.ttf'
+    ]
+    # ttf_list = get_ttf_files(ttf_dir)
 
     convert_ttf_to_png(json_path, ttf_list, output_dir, sample_count)
