@@ -1,5 +1,6 @@
 import os
 import pickle
+import argparse
 
 from PIL import Image, ImageDraw
 
@@ -61,15 +62,27 @@ def normalize_coordinates(coordinates, image_size, scale_factor):
     return normalized
 
 
-if __name__ == '__main__':
-    pkl_path1 = r'D:\soft\FontForgeBuilds\LXGWWenKaiGB-Light.pkl'
-    pkl_path2 = r'D:\soft\FontForgeBuilds\LCH_pics\HYCuFangSongJ.pkl'
-    out_path = '11'
+def main(opt):
+    out_path = opt.out_path
     if not os.path.exists(out_path):
         os.makedirs(out_path)
-
-    coor = pickle.load(open(pkl_path1, 'rb'))
+    coor = pickle.load(open(opt.pkl, 'rb'))
     del coor['font_name']
-    images = draw_character_strokes(coor, scale_factor=0.27)
+    images = draw_character_strokes(coor, scale_factor=opt.scale)
     for char, image in images.items():
         image.save(f"{out_path}/{char}.png")  # 保存图像
+
+
+if __name__ == '__main__':
+    """
+    conda activate SDTLog1
+    cd z_new_start/generate_utils
+    python read_coordinates_pkl.py
+    python read_coordinates_pkl.py --pkl ../ABtest/files/AB_coors/AliHYAiHei.pkl
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--out_path', default='coors_test_path', help='输出图片目录')
+    parser.add_argument('--pkl', default='../ABtest/files/AB_coors/HYAlzheimer.pkl', help='读取文件')
+    parser.add_argument('--scale', default=0.27, type=int, help='图片缩放尺寸')
+    opt = parser.parse_args()
+    main(opt)

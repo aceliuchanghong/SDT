@@ -192,3 +192,8 @@ font/*g*
 font/result/*
 font/result2/*
 font/result3/*
+
+z_new_start/ABtest/files/AB_coors/*.pkl
+z_new_start/ABtest/files/AB_pics_pkl/*.pkl
+z_new_start/ABtest/files/*.pkl
+

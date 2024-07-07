@@ -20,6 +20,7 @@ if __name__ == '__main__':
     cd z_new_start/generate_utils
     python read_content_pkl.py
     python read_content_pkl.py --pkl lch_pics_pkl/HYWeiBeiJ.pkl --nums 2
+    python read_content_pkl.py --pkl ../ABtest/files/AB_pics_pkl/HYBaManTiW.pkl --nums 2
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--pkl', default='new_chinese_content.pkl', help='读取文件')
