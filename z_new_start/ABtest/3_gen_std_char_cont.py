@@ -1,7 +1,7 @@
 from utils.judge_font import get_files
 from utils.util import write_pkl
 
-std_char_path = r'D:\soft\FontForgeBuilds\LCH_pics\LXGWWenKaiGB-Light'
+std_char_path = r'D:\soft\FontForgeBuilds\LCH_pics\00\test'
 get_suffix = '.png'
 
 if __name__ == '__main__':

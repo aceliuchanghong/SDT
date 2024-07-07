@@ -12,7 +12,7 @@ if not os.path.exists(save_pkl_file_path):
 
 if __name__ == '__main__':
     """
-    将字体转png后==>存储标准文字的图像
+    将所有字体转png后==>存储文字的图像
     """
     # 获取文件列表
     png_dirs = os.listdir(char_pics_path)
