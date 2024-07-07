@@ -7,13 +7,12 @@ from z_new_start.FontConfig import new_start_config
 
 
 class FontDataset(Dataset):
-    def __init__(self, is_train=False, is_dev=False, train_percent=0.8):
-        print("preparing dataset...")
-
+    def __init__(self, is_train=False, is_dev=True, train_percent=0.9):
         if is_dev:
             self.config_set = 'dev'
         else:
             self.config_set = 'test'
+        print(f"preparing {self.config_set} dataset...")
         self.config = new_start_config
 
         self.content = pickle.load(open(self.config[self.config_set]['content_pkl_path'], 'rb'))
@@ -53,7 +52,7 @@ class FontDataset(Dataset):
             self.font_data = self.font_data[train_size:]
 
         self.num_sample = len(self.font_data)
-        print("dataset is ready...")
+        print(f"{self.config_set} dataset is ready...")
 
     def __getitem__(self, idx):
         nums, font_name, label, img, coors = self.font_data[idx]
@@ -62,7 +61,7 @@ class FontDataset(Dataset):
     def __len__(self):
         return self.num_sample
 
-    def collate_fn_(self, batch_data):
+    def collect_fcuntion(self, batch_data):
         # 提取各个字段
         nums = [item['nums'] for item in batch_data]
         font_names = [item['font_name'] for item in batch_data]

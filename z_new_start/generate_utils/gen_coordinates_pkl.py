@@ -1,3 +1,4 @@
+# -*- coding: UTF-8 -*-
 import os
 import fontforge
 import pickle
@@ -54,6 +55,31 @@ def get_character_stroke_coordinates(font_path, characters, output_dir='.'):
     return coordinates
 
 
+def generate_font_from_coordinates(coordinates, output_path):
+    """
+    从坐标信息生成字体文件。
+    coordinates (dict): 字符的坐标信息。
+    output_path (str): 生成的字体文件的路径。
+    """
+    font = fontforge.font()
+    font_name = os.path.basename(output_path)
+    font.fontname = font_name
+
+    for char, char_coords in coordinates.items():
+        if char == "font_name" or not char_coords:
+            continue
+        glyph = font.createChar(ord(char))
+        pen = glyph.glyphPen()
+        for stroke in char_coords:
+            pen.moveTo(stroke[0][:2])
+            for point in stroke[1:]:
+                pen.lineTo(point[:2])
+            pen.closePath()
+        glyph.width = 1000  # 设置字符宽度，可以根据需要调整
+
+    font.generate(output_path)
+
+
 if __name__ == '__main__':
     """
     sudo apt-get install python3-fontforge
@@ -65,7 +91,10 @@ if __name__ == '__main__':
     # 获取要提取坐标的字符列表
     characters = ["刘", "一"]
 
+    output_font_path = r'D:\aProject\py\SDT\z_new_start\generate_utils\GeneratedFont.ttf'
+
     coordinates = get_character_stroke_coordinates(test_ttf, characters)
+    generate_font_from_coordinates(coordinates, output_font_path)
     del coordinates['font_name']
     print(coordinates)
 
