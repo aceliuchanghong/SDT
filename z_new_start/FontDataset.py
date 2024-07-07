@@ -40,7 +40,10 @@ class FontDataset(Dataset):
 
             for pic in font_pics_list:
                 char = pic['label']
-                if char in font_coors_list:
+                if char in font_coors_list and len(font_coors_list[char]) <= 25:
+                    # 文字笔画过多不要了
+                    # if len(font_coors_list[char]) > 50:
+                    #     print(pic['label'], font_coors_list[char])
                     self.font_data.append(
                         (i, font_name, pic['label'], pic['img'], font_coors_list[char])
                     )
@@ -62,6 +65,8 @@ class FontDataset(Dataset):
         return self.num_sample
 
     def collect_fcuntion(self, batch_data):
+        batch_size = len(batch_data)
+
         # 提取各个字段
         nums = [item['nums'] for item in batch_data]
         font_names = [item['font_name'] for item in batch_data]
@@ -70,24 +75,32 @@ class FontDataset(Dataset):
         coordinates = [item['coordinates'] for item in batch_data]
 
         # 将图像堆叠成一个张量
-        images = torch.stack([torch.tensor(img, dtype=torch.float32) for img in images])
+        images = torch.stack([torch.tensor(img, dtype=torch.float32) for img in images], dim=0)
 
         # 将 nums 转换为张量
         nums = torch.tensor(nums, dtype=torch.int64)
 
         # 将 labels 转换为适当的形式
-        labels = [torch.tensor(ord(label), dtype=torch.int64) for label in labels]  # 假设 label 是单个字符
+        labels = [torch.tensor(ord(label), dtype=torch.int64) for label in labels]  # label 是单个字符
         labels = torch.stack(labels)
 
-        # 将 coordinates 转换为张量列表
-        coordinates = [torch.tensor(coord, dtype=torch.float32) for coord in coordinates]
+        # 找到 batch 中最长的序列长度
+        max_len = max([coord.shape[0] for coord in coordinates])
 
+        # 初始化 coordinates 张量
+        padded_coordinates = torch.zeros((batch_size, max_len, 2), dtype=torch.float32)
+
+        for i, coord in enumerate(coordinates):
+            length = coord.shape[0]
+            padded_coordinates[i, :length] = torch.tensor(coord, dtype=torch.float32)
+
+        # 构造返回字典
         return {
             'nums': nums,
             'font_name': font_names,
             'label': labels,
             'image': images,
-            'coordinates': coordinates
+            'coordinates': padded_coordinates
         }
 
 

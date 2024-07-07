@@ -40,11 +40,7 @@ class FontModel(nn.Module):
         self.base_encoder = TransformerEncoder(encoder_layer, num_encoder_layers)
 
         # 风格特征编码器
-        writer_norm = nn.LayerNorm(d_model) if normalize_before else None
         glyph_norm = nn.LayerNorm(d_model) if normalize_before else None
-        self.writer_encoder = TransformerEncoder(
-            encoder_layer, num_writer_encoder_layers, writer_norm
-        )
         self.glyph_encoder = TransformerEncoder(
             encoder_layer, num_glyph_encoder_layers, glyph_norm
         )
@@ -55,14 +51,8 @@ class FontModel(nn.Module):
         )
 
         # 风格特征解码器
-        writer_decoder_layers = TransformerDecoderLayer(
-            d_model, num_head, dim_feedforward, dropout, activation
-        )
         glyph_decoder_layers = TransformerDecoderLayer(
             d_model, num_head, dim_feedforward, dropout, activation
-        )
-        self.writer_transformer_decoder = TransformerDecoder(
-            writer_decoder_layers, num_wri_decoder_layers
         )
         self.glyph_transformer_decoder = TransformerDecoder(
             glyph_decoder_layers, num_gly_decoder_layers
@@ -70,11 +60,6 @@ class FontModel(nn.Module):
 
         # 多层感知器（MLP，Multi-Layer Perceptron)
         # Gaussian Error Linear Unit
-        self.pro_mlp_writer = nn.Sequential(
-            nn.Linear(512, 4096),
-            nn.GELU(),
-            nn.Linear(4096, 256)
-        )
         self.pro_mlp_character = nn.Sequential(
             nn.Linear(512, 4096),
             nn.GELU(),
@@ -129,21 +114,18 @@ class FontModel(nn.Module):
         encoded_feat = self.base_encoder(feat)
 
         # 编码风格特征
-        writer_feat = self.writer_encoder(writer_style)
         glyph_feat = self.glyph_encoder(encoded_feat)
 
         # 编码内容
         content_feat = self.content_encoder(content_seq)
 
         # 解码风格特征和内容特征
-        writer_decoded = self.writer_transformer_decoder(content_feat, writer_feat)
         glyph_decoded = self.glyph_transformer_decoder(content_feat, glyph_feat)
 
         # 多层感知器处理
-        writer_output = self.pro_mlp_writer(writer_decoded)
         character_output = self.pro_mlp_character(glyph_decoded)
 
-        return writer_output, character_output
+        return character_output
 
     def inference(self, img):
         self.eval()
