@@ -1,0 +1,106 @@
+import argparse
+import logging
+from torch.utils.data import DataLoader
+import random
+import numpy as np
+import torch
+import torch.optim as optim
+import torch.nn as nn
+import sys
+import os
+
+from z_new_start.FontModel import FontModel
+from z_new_start.FontConfig import new_start_config
+from z_new_start.FontDataset import FontDataset
+from z_new_start.FontTrainer import FontTrainer
+
+# 获取项目根目录的绝对路径
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, project_root)
+# 设置日志
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+def fix_seed(random_seed):
+    random.seed(random_seed)
+    np.random.seed(random_seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    if torch.cuda.device_count() > 0 and torch.cuda.is_available():
+        torch.cuda.manual_seed_all(random_seed)
+    else:
+        torch.manual_seed(random_seed)
+
+
+def main(opt):
+    conf = new_start_config
+    train_conf = conf['train']
+    if opt.dev:
+        path_config = conf['dev']
+    else:
+        path_config = conf['test']
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    fix_seed(train_conf['seed'])
+    logger.info(f"seed: {train_conf['seed']}")
+
+    train_dataset = FontDataset(is_train=True, is_dev=opt.dev)
+    valid_dataset = FontDataset(is_train=False, is_dev=opt.dev)
+    logger.info(
+        f"\nThe number of training images:  {len(train_dataset)}\nThe number of valid images: {len(valid_dataset)}"
+    )
+    print(path_config)
+    train_loader = DataLoader(train_dataset,
+                              batch_size=path_config['PER_BATCH'],
+                              shuffle=True,
+                              drop_last=False,
+                              collate_fn=train_dataset.collect_function,
+                              num_workers=path_config['NUM_THREADS'])
+    valid_loader = DataLoader(valid_dataset,
+                              batch_size=path_config['PER_BATCH'],
+                              shuffle=True,
+                              drop_last=False,
+                              collate_fn=train_dataset.collect_function,
+                              num_workers=path_config['NUM_THREADS'])
+
+    model = FontModel()
+    if torch.cuda.device_count() > 1:
+        logger.info(f"Using {torch.cuda.device_count()} GPUs")
+        model = torch.nn.DataParallel(model)
+    elif torch.cuda.is_available():
+        logger.info("Using single GPU")
+    else:
+        logger.info("Using CPU")
+    model.to(device)
+
+    if len(opt.pretrained_model) > 0:
+        state_dict = torch.load(opt.pretrained_model)
+        if isinstance(model, torch.nn.DataParallel):
+            model.module.load_state_dict(state_dict)
+        else:
+            model.load_state_dict(state_dict)
+        logger.info('load pretrained model from {}'.format(opt.pretrained_model))
+
+    # TODO 待写损失函数
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+    logger.info(f"start training...")
+    # TODO 待写trainer
+    trainer = FontTrainer(model, train_loader, valid_loader, criterion, optimizer, train_conf['num_epochs'])
+    trainer.train()
+    logger.info(f"end training...")
+
+
+if __name__ == '__main__':
+    """
+    python z_new_start/z_train.py --dev
+    python z_new_start/z_train.py --pretrained_model xx/xx.pth --dev
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--pretrained_model', default='', help='pre-trained model')
+    parser.add_argument('--dev', action='store_true', help='加--dev则opt.dev=True为生产环境')
+    parser.add_argument('--log', default='Chinese_log', help='the filename of log')
+    opt = parser.parse_args()
+    main(opt)

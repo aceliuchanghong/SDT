@@ -9,18 +9,22 @@ import time
 
 
 class FontTrainer:
-    def __init__(self, model, train_loader, valid_loader, criterion, optimizer, device, num_epochs, checkpoint_path):
+    def __init__(self,
+                 model,
+                 train_loader,
+                 valid_loader,
+                 criterion,
+                 optimizer,
+                 num_epochs,
+                 ):
         self.model = model
         self.train_loader = train_loader
         self.valid_loader = valid_loader
         self.criterion = criterion
         self.optimizer = optimizer
-        self.device = device
         self.num_epochs = num_epochs
-        self.checkpoint_path = checkpoint_path
 
     def train(self):
-        self.model.to(self.device)
         for epoch in range(self.num_epochs):
             self.model.train()
             running_loss = 0.0

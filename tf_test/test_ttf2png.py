@@ -23,6 +23,10 @@ def convert_ttf_to_png(json_path, font_paths, output_dir, sample_count=6):
 
             if not os.path.exists(output_subdir):
                 os.makedirs(output_subdir)
+            # 增加一段,跳过存在的
+            else:
+                font.close()
+                return
 
             with open(json_path, 'r', encoding='utf-8') as f:
                 cjk = json.load(f)
@@ -38,6 +42,8 @@ def convert_ttf_to_png(json_path, font_paths, output_dir, sample_count=6):
                         count += 1
                     except Exception as e:
                         logger.error(f"Glyph not found for character {c}: {e}")
+            # 关闭字体文件
+            font.close()
         except Exception as e:
             logger.error(f"Error processing font {font_path}: {e}")
 
@@ -92,7 +98,7 @@ if __name__ == '__main__':
     json_path = '/mnt/data/llch/SDT/test/txt9169.json'
     output_dir = 'lch_pics'
 
-    ttf_dir = '/mnt/data/llch/Chinese-Fonts-Dataset/z_ttf/中国风/仿宋'
+    ttf_dir = '/mnt/data/llch/Chinese-Fonts-Dataset/z_ttf'
     sample_count = 10000
 
     ttf_list = get_ttf_files(ttf_dir)

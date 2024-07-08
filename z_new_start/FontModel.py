@@ -15,7 +15,7 @@ class FontModel(nn.Module):
                  num_wri_decoder_layers=2,
                  num_gly_decoder_layers=2,
                  dim_feedforward=2048,  # 前馈神经网络中隐藏层的大小
-                 dropout=0.1,
+                 dropout=0.2,
                  activation="relu",
                  normalize_before=True,  # 应用多头注意力和前馈神经网络之前是否对输入进行层归一化
                  return_intermediate_dec=True,  # 是否在解码过程中返回中间结果
