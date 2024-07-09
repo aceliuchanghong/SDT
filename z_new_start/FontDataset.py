@@ -16,13 +16,14 @@ class FontDataset(Dataset):
             self.config_set = 'dev'
         else:
             self.config_set = 'test'
-        # print(f"preparing {self.config_set} env dataset...")
         self.config = new_start_config
 
         self.content = pickle.load(open(self.config[self.config_set]['content_pkl_path'], 'rb'))
         self.char_dict = pickle.load(open(self.config[self.config_set]['character_pkl_path'], 'rb'))
         self.pic_path = self.config[self.config_set]['z_pic_pkl_path']
         self.coordinate_path = self.config[self.config_set]['z_coordinate_pkl_path']
+        self.max_stroke = 20
+        self.max_per_stroke_point = 200
 
         coors_pkl_list_all = get_files(self.coordinate_path, '.pkl')
         pics_pkl_list_all = get_files(self.pic_path, '.pkl')
@@ -44,13 +45,29 @@ class FontDataset(Dataset):
 
             for pic in font_pics_list:
                 char = pic['label']
-                if char in font_coors_list and len(font_coors_list[char]) <= 25:
-                    # 文字笔画过多不要了
-                    # if len(font_coors_list[char]) > 50:
-                    #     print(pic['label'], font_coors_list[char])
+                """
+                文字笔画过多不要了,最多self.max_length,某个3个笔画的文字
+                [
+                    [(429.0, -43.0, 1, 0)
+                     (404.0, -53.0, 0, 0)
+                     (549.0, 56.0, 0, 1)],
+                    [(967.0, 744.0, 1, 0)
+                     (831.0, 774.0, 0, 1)],
+                    [(704.0, 130.0, 1, 0)
+                     (760.0, 692.0, 0, 1)]
+                ]
+                单个笔画坐标点太多了也不要了
+                """
+                max_per_stroke_point = max(len(sublist) for sublist in font_coors_list[char])
+                if (char in font_coors_list and
+                        len(font_coors_list[char]) <= self.max_stroke and
+                        max_per_stroke_point <= self.max_per_stroke_point):
                     self.font_data.append(
                         (i, font_name, pic['label'], pic['img'], font_coors_list[char])
                     )
+                    # print('文字:', pic['label'],
+                    #       '笔画数量:', str(len(font_coors_list[char])),
+                    #       '一个笔画最多坐标点数量:', str(max_per_stroke_point))
 
         train_size = int(len(self.font_data) * train_percent)
         if is_train:
@@ -59,52 +76,47 @@ class FontDataset(Dataset):
             self.font_data = self.font_data[train_size:]
 
         self.num_sample = len(self.font_data)
-        # print(f"{self.config_set} dataset is ready...")
 
     def __getitem__(self, idx):
-        nums, font_name, label, img, coors = self.font_data[idx]
-        return {'nums': nums, 'font_name': font_name, 'label': label, 'image': img, 'coordinates': coors}
+        font_nums, font_name, label, char_img, coors = self.font_data[idx]
+        label_id = self.char_dict.index(label)
+        char_img = char_img / 255
+
+        # 添加通道维度 1 * 64 * 64
+        char_img_tensor = torch.tensor(char_img, dtype=torch.float32).unsqueeze(0)
+
+        # 对coors进行padding 使其长度一致 20 * 200 * 4
+        # 1.每个字符最多包含的笔画数
+        # 2.每个笔画最多包含的点数
+        padded_coors = torch.zeros((self.max_stroke, self.max_per_stroke_point, 4), dtype=torch.float32)
+        for i, stroke in enumerate(coors):
+            if i >= self.max_stroke:
+                break
+            for j, point in enumerate(stroke):
+                if j >= self.max_per_stroke_point:
+                    break
+                padded_coors[i, j] = torch.tensor(point, dtype=torch.float32)
+        # print(padded_coors)
+        # print(padded_coors.shape)
+        output = {
+            'label_id': torch.tensor(label_id, dtype=torch.long),
+            'char_img': char_img_tensor,
+            'coordinates': padded_coors
+        }
+        return output
 
     def __len__(self):
         return self.num_sample
 
     def collect_function(self, batch_data):
-        batch_size = len(batch_data)
+        batch_char_imgs = torch.stack([item['char_img'] for item in batch_data])
+        batch_coordinates = torch.stack([item['coordinates'] for item in batch_data])
+        batch_label_ids = torch.tensor([item['label_id'] for item in batch_data], dtype=torch.long)
 
-        # 提取各个字段
-        nums = [item['nums'] for item in batch_data]
-        font_names = [item['font_name'] for item in batch_data]
-        labels = [item['label'] for item in batch_data]
-        images = [item['image'] for item in batch_data]
-        coordinates = [item['coordinates'] for item in batch_data]
-
-        # 将图像堆叠成一个张量
-        images = torch.stack([torch.tensor(img, dtype=torch.float32) for img in images], dim=0)
-
-        # 将 nums 转换为张量
-        nums = torch.tensor(nums, dtype=torch.int64)
-
-        # 将 labels 转换为适当的形式
-        labels = [torch.tensor(ord(label), dtype=torch.int64) for label in labels]  # label 是单个字符
-        labels = torch.stack(labels)
-
-        # 找到 batch 中最长的序列长度
-        max_len = max([coord.shape[0] for coord in coordinates])
-
-        # 初始化 coordinates 张量
-        padded_coordinates = torch.zeros((batch_size, max_len, 2), dtype=torch.float32)
-
-        for i, coord in enumerate(coordinates):
-            length = coord.shape[0]
-            padded_coordinates[i, :length] = torch.tensor(coord, dtype=torch.float32)
-
-        # 构造返回字典
         return {
-            'nums': nums,
-            'font_name': font_names,
-            'label': labels,
-            'image': images,
-            'coordinates': padded_coordinates
+            'char_imgs': batch_char_imgs,
+            'coordinates': batch_coordinates,
+            'label_ids': batch_label_ids
         }
 
 

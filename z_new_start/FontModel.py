@@ -10,9 +10,7 @@ class FontModel(nn.Module):
                  d_model=512,
                  num_head=8,
                  num_encoder_layers=2,
-                 num_writer_encoder_layers=1,
                  num_glyph_encoder_layers=1,
-                 num_wri_decoder_layers=2,
                  num_gly_decoder_layers=2,
                  dim_feedforward=2048,  # 前馈神经网络中隐藏层的大小
                  dropout=0.2,
@@ -25,6 +23,7 @@ class FontModel(nn.Module):
         # 图像的特征提取卷积层
         # 此处使用一个卷积层和一个预训练的 ResNet-18 模型的特征提取器
         # *() 将列表中的元素作为多个参数传递给 nn.Sequential，而不是将整个列表作为一个参数
+        # Downloading: "https://download.pytorch.org/models/resnet18-f37072fd.pth" to C:/Users/liuch/.cache/torch/hub/checkpoints/resnet18-f37072fd.pth
         self.feat_encoder = nn.Sequential(*(  # 一个输入通道，输出64个通道。卷积核大小为7，步长为2，填充为3。bias=False不使用偏置项
                 [nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)]
                 +

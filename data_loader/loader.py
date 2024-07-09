@@ -152,7 +152,6 @@ class ScriptDataset(Dataset):
                   'img_list': [],
                   'char_img': [],
                   'img_label': []}
-        # 将所有未使用的空间填充为结束状态
         output['coords'][:, :, -1] = 1  # 用笔的结束状态填充
 
         for i in range(bs):

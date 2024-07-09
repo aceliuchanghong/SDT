@@ -37,9 +37,9 @@ def main(opt):
     conf = new_start_config
     train_conf = conf['train']
     if opt.dev:
-        path_config = conf['dev']
+        data_conf = conf['dev']
     else:
-        path_config = conf['test']
+        data_conf = conf['test']
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     fix_seed(train_conf['seed'])
@@ -50,19 +50,19 @@ def main(opt):
     logger.info(
         f"\nThe number of training images:  {len(train_dataset)}\nThe number of valid images: {len(valid_dataset)}"
     )
-    print(path_config)
+
     train_loader = DataLoader(train_dataset,
-                              batch_size=path_config['PER_BATCH'],
+                              batch_size=data_conf['PER_BATCH'],
                               shuffle=True,
                               drop_last=False,
                               collate_fn=train_dataset.collect_function,
-                              num_workers=path_config['NUM_THREADS'])
+                              num_workers=data_conf['NUM_THREADS'])
     valid_loader = DataLoader(valid_dataset,
-                              batch_size=path_config['PER_BATCH'],
+                              batch_size=data_conf['PER_BATCH'],
                               shuffle=True,
                               drop_last=False,
                               collate_fn=train_dataset.collect_function,
-                              num_workers=path_config['NUM_THREADS'])
+                              num_workers=data_conf['NUM_THREADS'])
 
     model = FontModel()
     if torch.cuda.device_count() > 1:
@@ -84,11 +84,20 @@ def main(opt):
 
     # TODO 待写损失函数
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=train_conf['LEARNING_RATE'])
 
     logger.info(f"start training...")
     # TODO 待写trainer
-    trainer = FontTrainer(model, train_loader, valid_loader, criterion, optimizer, train_conf['num_epochs'])
+    trainer = FontTrainer(
+        model=model,
+        train_loader=train_loader,
+        valid_loader=valid_loader,
+        criterion=criterion,
+        optimizer=optimizer,
+        device=device,
+        train_conf=train_conf,
+        data_conf=data_conf,
+    )
     trainer.train()
     logger.info(f"end training...")
 

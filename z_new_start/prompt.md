@@ -1174,3 +1174,203 @@ class SDT_Generator(nn.Module):
         pred_sequence = self.EmbtoSeq(h)
         return pred_sequence, nce_emb, nce_emb_patch
 ```
+
+---
+
+```python
+train_loader = torch.utils.data.DataLoader(test_dataset,
+                              batch_size=8,
+                              shuffle=True,
+                              drop_last=False,
+                              collate_fn=test_dataset.collate_fn_,
+                              num_workers=0)
+```
+collate_fn_起什么作用?给一个实例
+
+---
+你是一个神经网络模型专家,我在做字体风格迁移的任务
+1.使用了320个不同字体,对于每一种字体的全部文字图片,使用cv2.resize(style_img, (64, 64))将其存储为64*64的格式,然后每一种字体存为一个pkl文件,有320个
+2.获取了不同字体的每个文字的坐标,每一种字体坐标存储为一个pkl文件,同样320个
+3.我定义了FontModel作为风格迁移的模型
+```python
+class FontModel(nn.Module):
+    def __init__(self,
+                 d_model=512,
+                 num_head=8,
+                 num_encoder_layers=2,
+                 num_glyph_encoder_layers=1,
+                 num_gly_decoder_layers=2,
+                 dim_feedforward=2048,  # 前馈神经网络中隐藏层的大小
+                 dropout=0.2,
+                 activation="relu",
+                 normalize_before=True,  # 应用多头注意力和前馈神经网络之前是否对输入进行层归一化
+                 return_intermediate_dec=True,  # 是否在解码过程中返回中间结果
+                 ):
+        super(FontModel, self).__init__()
+
+        self.feat_encoder = nn.Sequential(*(  # 一个输入通道，输出64个通道。卷积核大小为7，步长为2，填充为3。bias=False不使用偏置项
+                [nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)]
+                +
+                list(models.resnet18(weights=ResNet18_Weights.IMAGENET1K_V1).children())[1:-2]
+        ))
+
+        # Transformer 编码器
+        encoder_layer = TransformerEncoderLayer(
+            d_model, num_head, dim_feedforward, dropout, activation, normalize_before
+        )
+        self.base_encoder = TransformerEncoder(encoder_layer, num_encoder_layers)
+
+        # 风格特征编码器
+        glyph_norm = nn.LayerNorm(d_model) if normalize_before else None
+        self.glyph_encoder = TransformerEncoder(
+            encoder_layer, num_glyph_encoder_layers, glyph_norm
+        )
+
+        # 内容编码器 用于对输入的内容进行编码，以提取内容信息。
+        self.content_encoder = Content_TR(
+            d_model=d_model, num_encoder_layers=num_encoder_layers
+        )
+
+        # 风格特征解码器
+        glyph_decoder_layers = TransformerDecoderLayer(
+            d_model, num_head, dim_feedforward, dropout, activation
+        )
+        self.glyph_transformer_decoder = TransformerDecoder(
+            glyph_decoder_layers, num_gly_decoder_layers
+        )
+
+        # 多层感知器（MLP，Multi-Layer Perceptron)
+
+        self.pro_mlp_character = nn.Sequential(
+            nn.Linear(512, 4096),
+            nn.GELU(),
+            nn.Linear(4096, 256)
+        )
+
+        self.stroke_width_network = nn.Sequential(
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1)  # 输出一个值表示笔画宽度
+        )
+        self.color_network = nn.Sequential(
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 3)  # 输出三个值表示颜色的RGB通道
+        )
+
+        self.add_position = PositionalEncoding(dim=d_model, dropout=0.1)
+        # 参数重置 用于初始化模型的参数
+        self._reset_parameters()
+```
+4.写了数据集的FontDataset
+5.写了train.py用来训练
+帮我审视这个过程,看看是否可行
+
+---
+
+在考虑FontDataset的时候,其定义你可以忽略,但是注意以下
+```
+class FontDataset(Dataset):
+    def __init__(self, is_train=False, is_dev=True, train_percent=0.9):
+        """
+        is_train 给训练数据集还是测试数据集
+        is_dev 在真正环境跑还是测试环境跑
+        """
+        if is_dev:
+            self.config_set = 'dev'
+        else:
+            self.config_set = 'test'
+        self.config = new_start_config
+
+        self.content = pickle.load(open(self.config[self.config_set]['content_pkl_path'], 'rb'))
+        self.char_dict = pickle.load(open(self.config[self.config_set]['character_pkl_path'], 'rb'))
+        self.pic_path = self.config[self.config_set]['z_pic_pkl_path']
+        self.coordinate_path = self.config[self.config_set]['z_coordinate_pkl_path']
+
+        coors_pkl_list_all = get_files(self.coordinate_path, '.pkl')
+        pics_pkl_list_all = get_files(self.pic_path, '.pkl')
+
+        self.can_be_used_font = []
+        for i, font_pic_pkl in enumerate(pics_pkl_list_all):
+            font_name = os.path.basename(font_pic_pkl).split('.')[0]
+            for coors_pkl in coors_pkl_list_all:
+                if font_name == os.path.basename(coors_pkl).split('.')[0]:
+                    self.can_be_used_font.append(font_name)
+
+        self.font_data = []
+        for i, font_name in enumerate(self.can_be_used_font):
+            font_pic_pkl = os.path.join(self.pic_path, font_name + '.pkl')
+            font_coors_pkl = os.path.join(self.coordinate_path, font_name + '.pkl')
+
+            font_pics_list = pickle.load(open(font_pic_pkl, 'rb'))
+            font_coors_list = pickle.load(open(font_coors_pkl, 'rb'))
+
+            for pic in font_pics_list:
+                char = pic['label']
+                # 文字笔画过多不要了
+                if char in font_coors_list and len(font_coors_list[char]) <= 25:
+                    self.font_data.append(
+                        (i, font_name, pic['label'], pic['img'], font_coors_list[char])
+                    )
+
+        train_size = int(len(self.font_data) * train_percent)
+        if is_train:
+            self.font_data = self.font_data[:train_size]
+        else:
+            self.font_data = self.font_data[train_size:]
+
+        self.num_sample = len(self.font_data)
+    def __getitem__(self, idx):
+        font_nums, font_name, label, char_img, coors = self.font_data[idx]
+        label_id = self.char_dict.index(label)
+        print(f'font_nums:{font_nums}\nfont_name:{font_name}\nlabel:{label}')
+        output = {
+            'label_id': torch.Tensor(label_id),
+            'char_img': torch.Tensor(char_img),
+            'coordinates': torch.Tensor(coors),
+        }
+        return output
+
+    def __len__(self):
+        return self.num_sample
+
+    def collect_function(self, batch_data):
+        pass
+```
+我的想法是在训练的时候,定义train_dataset,然后交给torch的DataLoader
+对于 collect_function,__getitem__ 这2个函数,帮我考虑一下,其中coordinates是每个文字的坐标,每个字其有很多笔画,
+每个坐标点表示为 {char:[[(x, y, p1, p2),...],...],...}。
+    x 和 y 分别表示笔画中某一个点的横坐标和纵坐标。
+    p1 和 p2 是布尔标记（0 或 1），用于表示点在笔画中的角色。
+    p1 表示笔画起始点，如果这个点是笔画的起始点，则 p1 的值为 1，否则为 0。
+    p2 表示笔画终止点，如果这个点是笔画的终止点，则 p2 的值为 1，否则为 0。
+```python
+train_dataset = FontDataset(is_train=True, is_dev=opt.dev)
+train_loader = DataLoader(train_dataset,
+                              batch_size=data_conf['PER_BATCH'],
+                              shuffle=True,
+                              drop_last=False,
+                              collate_fn=train_dataset.collect_function,
+                              num_workers=data_conf['NUM_THREADS'])
+```
+开始训练
+train_loader_iter = iter(self.train_loader)
+        for epoch in range(num_epochs):
+            try:
+                data = next(train_loader_iter)
+那么这个数据处理这部分怎么写呢? collect_function,__getitem__ 这2个函数 帮我完善一下
+
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+
+---
+
