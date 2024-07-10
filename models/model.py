@@ -176,12 +176,13 @@ class SDT_Generator(nn.Module):
 
         # style_imgs: [B, 2*N, C:1, H, W] -> FEAT_ST_ENC: [4*N, B, C:512]
         # -1是一个特殊的值，表示该维度的大小将通过其他维度的大小和总元素数自动推断出来
+        # 调整风格图像的形状
         style_imgs = style_imgs.view(-1, in_planes, h, w)  # [B*2N, C:1, H, W]
         style_embe = self.Feat_Encoder(style_imgs)  # [B*2N, C:512, 2, 2]
 
         anchor_num = num_imgs // 2
-        style_embe = style_embe.view(batch_size * num_imgs, 512, -1).permute(2, 0,
-                                                                             1)  # [4, B*2N, C:512] permute,改变张量的维度顺序
+        # [4, B*2N, C:512] permute,改变张量的维度顺序
+        style_embe = style_embe.view(batch_size * num_imgs, 512, -1).permute(2, 0, 1)
         FEAT_ST_ENC = self.add_position(style_embe)
 
         memory = self.base_encoder(FEAT_ST_ENC)  # [4, B*2N, C]

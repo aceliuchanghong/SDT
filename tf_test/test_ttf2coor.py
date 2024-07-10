@@ -72,15 +72,16 @@ if __name__ == '__main__':
     """
     pkl_path = r'D:\aProject\py\SDT\z_new_start\generate_utils\new_character_dict.pkl'
     char_dict = pickle.load(open(pkl_path, 'rb'))
+    print(char_dict)
 
     output_dir = './LCH_pics'
 
-    ttf_dir = r'D:\download\Chinese-Fonts-Dataset-main\ttf格式\衬线体\仿宋'
+    # ttf_dir = r'D:\download\Chinese-Fonts-Dataset-main\ttf格式\衬线体\仿宋'
+    # ttf_list = get_ttf_files(ttf_dir)
+    ttf_list = [
+        r'D:\aProject\py\SDT\z_new_start\generate_utils\LXGWWenKaiGB-Light.ttf'
+    ]
 
-    # ttf_list = [
-    #     r'D:\aProject\py\SDT\z_new_start\generate_utils\LXGWWenKaiGB-Light.ttf'
-    # ]
-    ttf_list = get_ttf_files(ttf_dir)
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = [executor.submit(get_character_stroke_coordinates2, font_path, char_dict, output_dir) for font_path in
                    ttf_list]

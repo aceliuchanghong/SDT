@@ -104,30 +104,35 @@ class FontModel(nn.Module):
             if p.dim() > 1:
                 nn.init.xavier_uniform_(p)
 
-    def forward(self, image, writer_style, content_seq):
-        # 提取图像特征
-        feat = self.feat_encoder(image)
-        feat = feat.flatten(2).permute(2, 0, 1)  # (batch_size, channels, H, W) -> (H*W, batch_size, channels)
+    def forward(self, char_img_gt, std_coors):
+        # 特征提取
+        feat = self.feat_encoder(char_img_gt)  # 提取图像特征
+        feat = feat.flatten(2).permute(2, 0, 1)  # 重塑特征以适应Transformer的输入格式
+        # 编码图像特征
+        encoded_feat = self.base_encoder(feat)  # 基本编码器
+        # 字形编码
+        glyph_feat = self.glyph_encoder(encoded_feat)  # 字形编码器
 
-        # Transformer编码器处理图像特征
-        encoded_feat = self.base_encoder(feat)
+        # 内容编码
+        content_feat = self.content_encoder(std_coors)  # 使用标准坐标进行内容编码
 
-        # 编码风格特征
-        glyph_feat = self.glyph_encoder(encoded_feat)
+        # 字形解码
+        glyph_decoded = self.glyph_transformer_decoder(content_feat, glyph_feat)  # 字形Transformer解码器
 
-        # 编码内容
-        content_feat = self.content_encoder(content_seq)
+        # 通过MLP生成最终的字符输出
+        character_output = self.pro_mlp_character(glyph_decoded)  # 最终的字符输出
 
-        # 解码风格特征和内容特征
-        glyph_decoded = self.glyph_transformer_decoder(content_feat, glyph_feat)
-
-        # 多层感知器处理
-        character_output = self.pro_mlp_character(glyph_decoded)
-
+        # 返回最终的字符输出
         return character_output
 
-    def inference(self, img):
-        self.eval()
-        with torch.no_grad():
-            output = self.forward(img)
-        return output
+    def inference(self, img_list):
+        self.eval()  # 切换到评估模式
+        outputs = []
+
+        with torch.no_grad():  # 禁用梯度计算以提高推理速度并节省内存
+            for img in img_list:
+                img = img.unsqueeze(0)  # 增加批次维度
+
+                pass
+
+        return outputs

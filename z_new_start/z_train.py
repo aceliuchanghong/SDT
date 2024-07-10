@@ -61,10 +61,20 @@ def main(opt):
                               batch_size=data_conf['PER_BATCH'],
                               shuffle=True,
                               drop_last=False,
-                              collate_fn=train_dataset.collect_function,
+                              collate_fn=valid_dataset.collect_function,
                               num_workers=data_conf['NUM_THREADS'])
-
-    model = FontModel()
+    model = FontModel(
+        d_model=train_conf['d_model'],
+        num_head=train_conf['num_head'],
+        num_encoder_layers=train_conf['num_encoder_layers'],
+        num_glyph_encoder_layers=train_conf['num_glyph_encoder_layers'],
+        num_gly_decoder_layers=train_conf['num_gly_decoder_layers'],
+        dim_feedforward=train_conf['dim_feedforward'],
+        dropout=train_conf['dropout'],
+        activation="relu",
+        normalize_before=True,
+        return_intermediate_dec=True,
+    )
     if torch.cuda.device_count() > 1:
         logger.info(f"Using {torch.cuda.device_count()} GPUs")
         model = torch.nn.DataParallel(model)
@@ -82,12 +92,11 @@ def main(opt):
             model.load_state_dict(state_dict)
         logger.info('load pretrained model from {}'.format(opt.pretrained_model))
 
-    # TODO 待写损失函数
+    # TODO 待写损失函数 风格迁移损失函数查下
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=train_conf['LEARNING_RATE'])
 
     logger.info(f"start training...")
-    # TODO 待写trainer
     trainer = FontTrainer(
         model=model,
         train_loader=train_loader,
@@ -99,12 +108,11 @@ def main(opt):
         data_conf=data_conf,
     )
     trainer.train()
-    logger.info(f"end training...")
 
 
 if __name__ == '__main__':
     """
-    python z_new_start/z_train.py --dev
+    python z_new_start/z_train.py
     python z_new_start/z_train.py --pretrained_model xx/xx.pth --dev
     """
     parser = argparse.ArgumentParser()

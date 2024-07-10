@@ -21,14 +21,14 @@ def main(opt):
     all_char.extend(temp_char)
     if len(all_char) < 90:
         print(all_char)
-    pickle.dump(all_char, open('new_character_dict.pkl', 'wb'))
+    pickle.dump(all_char, open('../generate_utils/new_character_dict.pkl', 'wb'))
     print("suc generate:", len(all_char))
 
 
 if __name__ == "__main__":
     """
     cd z_new_start/ABtest
-    python gen_ABcharacter_pkl.py --nums 0
+    python 2_gen_ABcharacter_pkl.py --nums 0
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('--not_all', action='store_true', help='有not_all参数的时候不加字母标点之类')
